@@ -97,24 +97,44 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 @param ESTADO	O estado atual
 */
 void imprime(char *path, long long int mao[]) {
-    int n, v;
+    int n; // naipe palhaco
+    int v; // valor palhaco
     int x, y;
-    int i;
+    int m; // maos palhaco
 
     printf("<svg height = \"800\" width = \"800\">\n");
     printf("<rect x = \"0\" y = \"0\" height = \"800\" width = \"800\" style = \"fill:#007700\"/>\n");
 
     for (i = 0; i < 4; i++) {
         for(y = 10, n = 0; n < 4; n++, y += 120) {
-            for(x = 10, v = 0; v < 13; v++)
+            for(x = 10, v = 0; v < 13; v++) {
                 if(carta_existe(mao[i], n, v)) {
                     x += 20;
                     imprime_carta(path, x, y, mao[i], n, v);
                 }
+            }
         }
     }
 
     printf("</svg>\n");
+}
+
+void baralhar (long long int mao[])
+{
+    int n; // naipe
+    int v; // valor
+    int j; // jogador
+    int ncartas[4]; // contador de cartas de cada jogador
+
+    for (n = 0; n < 4; n++) {
+        for (v = 0; v < 13; v++) {
+            do {
+                j = random() % 4;
+                add_carta (mao[j], n, v);
+                ++ncartas[j];
+            } while (ncartas[j] < 13);
+        }
+    }
 }
 
 /** \brief Trata os argumentos da CGI
@@ -128,29 +148,11 @@ Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão pr
 void parse(char *query) {
     long long int mao[4];
 
-    if(sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
+    if (sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
         imprime(BARALHO, mao);
     } else {
         baralhar(mao);
         imprime(BARALHO, mao);
-    }
-}
-
-void baralhar (long long int mao[])
-{
-    int n; // naipe
-    int f; // numero/figura
-    int j; // jogador
-    int ncartas[4]; // contador de cartas de cada jogador
-
-    for (n = 0; n < 4; n++) {
-        for (f = 0; f < 13; f++) {
-            do {
-                j = random() % 4;
-                add_carta (mao[j], n, f);
-                ++ncartas[j];
-            } while (ncartas[j] < 13);
-        }
     }
 }
 
