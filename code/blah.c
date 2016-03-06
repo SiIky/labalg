@@ -20,6 +20,9 @@ Ordem das cartas
 */
 #define VALORES		"3456789TJQKA2"
 
+#define TRUE 1
+#define FALSE 0
+
 /**
 Estado inicial com todas as 52 cartas do baralho
 Cada carta é representada por um bit que está
@@ -33,7 +36,7 @@ const long long int ESTADO_INICIAL = 0xfffffffffffff;
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O índice correspondente à carta
 */
-int indice(int naipe, int valor)
+int indice (int naipe, int valor)
 {
     return naipe * 13 + valor;
 }
@@ -45,7 +48,7 @@ int indice(int naipe, int valor)
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O novo estado
 */
-long long int add_carta(long long int ESTADO, int naipe, int valor)
+long long int add_carta (long long int ESTADO, int naipe, int valor)
 {
     int idx = indice(naipe, valor);
     return ESTADO | ((long long int) 1 << idx);
@@ -58,7 +61,7 @@ long long int add_carta(long long int ESTADO, int naipe, int valor)
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O novo estado
 */
-long long int rem_carta(long long int ESTADO, int naipe, int valor)
+long long int rem_carta (long long int ESTADO, int naipe, int valor)
 {
     int idx = indice(naipe, valor);
     return ESTADO & ~((long long int) 1 << idx);
@@ -71,7 +74,7 @@ long long int rem_carta(long long int ESTADO, int naipe, int valor)
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		1 se a carta existe e 0 caso contrário
 */
-int carta_existe(long long int ESTADO, int naipe, int valor)
+int carta_existe (long long int ESTADO, int naipe, int valor)
 {
     int idx = indice(naipe, valor);
     return (ESTADO >> idx) & 1;
@@ -86,7 +89,7 @@ int carta_existe(long long int ESTADO, int naipe, int valor)
 @param naipe	O naipe da carta (inteiro entre 0 e 3)
 @param valor	O valor da carta (inteiro entre 0 e 12)
 */
-void imprime_carta(char *path, int x, int y, long long int ESTADO, int naipe, int valor)
+void imprime_carta (char *path, int x, int y, long long int ESTADO, int naipe, int valor)
 {
     char *suit = NAIPES;
     char *rank = VALORES;
@@ -101,7 +104,7 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 @param path	o URL correspondente à pasta que contém todas as cartas
 @param ESTADO	O estado atual
 */
-void imprime(char *path, long long int mao[])
+void imprime (char *path, long long int mao[])
 {
     int n; /* naipe palhaco */
     int v; /* valor palhaco */
@@ -125,20 +128,40 @@ void imprime(char *path, long long int mao[])
     printf("</svg>\n");
 }
 
+void escolhe_jogador (int naipe, int valor, long long int mao[], int ncartas[])
+{
+    int j; /* jogador */
+
+    while (TRUE) {
+        j = random() % 4;
+        if (ncartas[j] < 13) {
+            add_carta (mao[j], naipe, valor);
+            ++ncartas[j];
+            break;
+        }
+    }
+}
+
 void baralhar (long long int mao[])
 {
     int n; /* naipe */
     int v; /* valor */
-    int j; /* jogador */
     int ncartas[4]; /* contador de cartas de cada jogador */
+
+    ncartas[0] = ncartas[1] = ncartas[2] = ncartas[3] = 0;
 
     for (n = 0; n < 4; n++) {
         for (v = 0; v < 13; v++) {
+            /*
+             * este do-while ta a dar cartas antes de testar
+             * se o jogador ja tem ou nao 13 cartas
             do {
                 j = random() % 4;
                 add_carta (mao[j], n, v);
                 ++ncartas[j];
-            } while (ncartas[j] < 13);
+            } while (ncartas[j] < 12);
+            */
+            escolhe_jogador(n, v, mao, ncartas);
         }
     }
 }
@@ -151,7 +174,7 @@ Cada carta corresponde a um bit que está a 1 se essa carta está no conjunto e 
 Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão presentes.
 @param query A query que é passada à cgi-bin
 */
-void parse(char *query)
+void parse (char *query)
 {
     long long int mao[4];
 
@@ -168,7 +191,7 @@ void parse(char *query)
 Função principal do programa que imprime os cabeçalhos necessários e depois disso invoca
 a função que vai imprimir o código html para desenhar as cartas
 */
-int main()
+int main ()
 {
 /*
  * Cabeçalhos necessários numa CGI
