@@ -20,6 +20,9 @@ Ordem das cartas
 */
 #define VALORES		"3456789TJQKA2"
 
+#define TRUE 1
+#define FALSE 0
+
 /**
 Estado inicial com todas as 52 cartas do baralho
 Cada carta é representada por um bit que está
@@ -33,7 +36,8 @@ const long long int ESTADO_INICIAL = 0xfffffffffffff;
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O índice correspondente à carta
 */
-int indice(int naipe, int valor) {
+int indice (int naipe, int valor)
+{
     return naipe * 13 + valor;
 }
 
@@ -44,7 +48,8 @@ int indice(int naipe, int valor) {
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O novo estado
 */
-long long int add_carta(long long int ESTADO, int naipe, int valor) {
+long long int add_carta (long long int ESTADO, int naipe, int valor)
+{
     int idx = indice(naipe, valor);
     return ESTADO | ((long long int) 1 << idx);
 }
@@ -56,7 +61,8 @@ long long int add_carta(long long int ESTADO, int naipe, int valor) {
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		O novo estado
 */
-long long int rem_carta(long long int ESTADO, int naipe, int valor) {
+long long int rem_carta (long long int ESTADO, int naipe, int valor)
+{
     int idx = indice(naipe, valor);
     return ESTADO & ~((long long int) 1 << idx);
 }
@@ -68,7 +74,8 @@ long long int rem_carta(long long int ESTADO, int naipe, int valor) {
 @param valor	O valor da carta (inteiro entre 0 e 12)
 @return		1 se a carta existe e 0 caso contrário
 */
-int carta_existe(long long int ESTADO, int naipe, int valor) {
+int carta_existe (long long int ESTADO, int naipe, int valor)
+{
     int idx = indice(naipe, valor);
     return (ESTADO >> idx) & 1;
 }
@@ -82,7 +89,8 @@ int carta_existe(long long int ESTADO, int naipe, int valor) {
 @param naipe	O naipe da carta (inteiro entre 0 e 3)
 @param valor	O valor da carta (inteiro entre 0 e 12)
 */
-void imprime_carta(char *path, int x, int y, long long int ESTADO, int naipe, int valor) {
+void imprime_carta (char *path, int x, int y, long long int ESTADO, int naipe, int valor)
+{
     char *suit = NAIPES;
     char *rank = VALORES;
     char script[10240];
@@ -96,25 +104,66 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 @param path	o URL correspondente à pasta que contém todas as cartas
 @param ESTADO	O estado atual
 */
-void imprime(char *path, long long int mao[]) {
-    int n, v;
+void imprime (char *path, long long int mao[])
+{
+    int n; /* naipe palhaco */
+    int v; /* valor palhaco */
     int x, y;
-    int i;
+    int m; /* maos palhaco */
 
     printf("<svg height = \"800\" width = \"800\">\n");
     printf("<rect x = \"0\" y = \"0\" height = \"800\" width = \"800\" style = \"fill:#007700\"/>\n");
 
-    for (i = 0; i < 4; i++) {
+    for (m = 0; m < 4; m++) {
         for(y = 10, n = 0; n < 4; n++, y += 120) {
-            for(x = 10, v = 0; v < 13; v++)
-                if(carta_existe(mao[i], n, v)) {
+            for(x = 10, v = 0; v < 13; v++) {
+                if(carta_existe(mao[m], n, v)) {
                     x += 20;
-                    imprime_carta(path, x, y, mao[i], n, v);
+                    imprime_carta(path, x, y, mao[m], n, v);
                 }
+            }
         }
     }
 
     printf("</svg>\n");
+}
+
+void escolhe_jogador (int naipe, int valor, long long int mao[], int ncartas[])
+{
+    int j; /* jogador */
+
+    while (TRUE) {
+        j = random() % 4;
+        if (ncartas[j] < 13) {
+            add_carta (mao[j], naipe, valor);
+            ++ncartas[j];
+            break;
+        }
+    }
+}
+
+void baralhar (long long int mao[])
+{
+    int n; /* naipe */
+    int v; /* valor */
+    int ncartas[4]; /* contador de cartas de cada jogador */
+
+    ncartas[0] = ncartas[1] = ncartas[2] = ncartas[3] = 0;
+
+    for (n = 0; n < 4; n++) {
+        for (v = 0; v < 13; v++) {
+            /*
+             * este do-while ta a dar cartas antes de testar
+             * se o jogador ja tem ou nao 13 cartas
+            do {
+                j = random() % 4;
+                add_carta (mao[j], n, v);
+                ++ncartas[j];
+            } while (ncartas[j] < 12);
+            */
+            escolhe_jogador(n, v, mao, ncartas);
+        }
+    }
 }
 
 /** \brief Trata os argumentos da CGI
@@ -125,10 +174,11 @@ Cada carta corresponde a um bit que está a 1 se essa carta está no conjunto e 
 Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão presentes.
 @param query A query que é passada à cgi-bin
 */
-void parse(char *query) {
+void parse (char *query)
+{
     long long int mao[4];
 
-    if(sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
+    if (sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
         imprime(BARALHO, mao);
     } else {
         baralhar(mao);
@@ -136,9 +186,7 @@ void parse(char *query) {
     }
 }
 
-
-
-
+/*
 void baralhar (long long int mao[])
 {
     int n;
@@ -155,14 +203,15 @@ void baralhar (long long int mao[])
       ncartas[j]++; }
 }
 }
-
+*/
 
 /** \brief Função principal
 
 Função principal do programa que imprime os cabeçalhos necessários e depois disso invoca
 a função que vai imprimir o código html para desenhar as cartas
 */
-int main() {
+int main ()
+{
 /*
  * Cabeçalhos necessários numa CGI
  */
