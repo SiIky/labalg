@@ -136,23 +136,26 @@ void parse(char *query) {
     }
 }
 
+
+
+
 void baralhar (long long int mao[])
 {
-    int n; // naipe
-    int f; // numero/figura
-    int j; // jogador
-    int ncartas[4]; // contador de cartas de cada jogador
+    int n;
+    int f;
+    int j;
+    int ncartas[4];
 
     for (n = 0; n < 4; n++) {
-        for (f = 0; f < 13; f++) {
-            do {
-                j = random() % 4;
-                add_carta (mao[j], n, f);
-                ++ncartas[j];
-            } while (ncartas[j] < 13);
-        }
-    }
+    for (f = 0; f < 13; f++) {
+        do {
+            j = random () % 4; } 
+        while (ncartas[j] >= 13);
+       mao[j] = add_carta (mao[j], n, f);
+      ncartas[j]++; }
 }
+}
+
 
 /** \brief Função principal
 
