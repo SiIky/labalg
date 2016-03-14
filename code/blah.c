@@ -142,26 +142,37 @@ void escolhe_jogador (int naipe, int valor, long long int mao[], int ncartas[])
     }
 }
 
+/* minha
 void baralhar (long long int mao[])
 {
-    int n; /* naipe */
-    int v; /* valor */
-    int ncartas[4]; /* contador de cartas de cada jogador */
+    int n; // naipe
+    int v; // valor
+    int ncartas[4]; // contador de cartas de cada jogador
 
     ncartas[0] = ncartas[1] = ncartas[2] = ncartas[3] = 0;
 
     for (n = 0; n < 4; n++) {
         for (v = 0; v < 13; v++) {
-            /*
-             * este do-while ta a dar cartas antes de testar
-             * se o jogador ja tem ou nao 13 cartas
+            escolhe_jogador(n, v, mao, ncartas);
+        }
+    }
+}
+*/
+
+void baralhar (long long int mao[])
+{
+    int n;
+    int f;
+    int j;
+    int ncartas[4];
+
+    for (n = 0; n < 4; n++) {
+        for (f = 0; f < 13; f++) {
             do {
                 j = random() % 4;
-                add_carta (mao[j], n, v);
-                ++ncartas[j];
-            } while (ncartas[j] < 12);
-            */
-            escolhe_jogador(n, v, mao, ncartas);
+            } while (ncartas[j] >= 13);
+            mao[j] = add_carta(mao[j], n, f);
+            ncartas[j]++;
         }
     }
 }
@@ -185,25 +196,6 @@ void parse (char *query)
         imprime(BARALHO, mao);
     }
 }
-
-/*
-void baralhar (long long int mao[])
-{
-    int n;
-    int f;
-    int j;
-    int ncartas[4];
-
-    for (n = 0; n < 4; n++) {
-    for (f = 0; f < 13; f++) {
-        do {
-            j = random () % 4; } 
-        while (ncartas[j] >= 13);
-       mao[j] = add_carta (mao[j], n, f);
-      ncartas[j]++; }
-}
-}
-*/
 
 /** \brief Função principal
 
