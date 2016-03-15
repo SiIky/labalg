@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+sudo cp -i cartas /usr/lib/cgi-bin
