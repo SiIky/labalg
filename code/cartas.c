@@ -216,10 +216,10 @@ int main ()
  * Cabeçalhos necessários numa CGI
  */
     printf("Content-Type: text/html; charset=utf-8\n\n");
-    printf("<header><title>Exemplo</title></header>\n");
+    printf("<header><title>Big Two</title></header>\n");
     printf("<body>\n");
 
-    printf("<h1>Exemplo de utilização</h1>\n");
+    printf("<h1>Big Two</h1>\n");
 
 /*
  * Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa
