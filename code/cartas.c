@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /**
 URL da CGI
@@ -207,6 +208,10 @@ a função que vai imprimir o código html para desenhar as cartas
 */
 int main ()
 {
+    /*
+    int ncartas[4];
+    int jactual = (jactual + 1) % 4;
+    */
 /*
  * Cabeçalhos necessários numa CGI
  */
