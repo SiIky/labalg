@@ -3,26 +3,26 @@
 #include <string.h>
 #include <time.h>
 
-/**
-URL da CGI
-*/
+/* URL da CGI */
 #define SCRIPT		"http://127.0.0.1/cgi-bin/cartas"
-/**
-URL da pasta com as cartas
-*/
+
+/* URL da pasta com as cartas */
 #define BARALHO		"http://127.0.0.1/cards"
 
-/**
-Ordem dos naipes
-*/
+/* Ordem dos naipes */
 #define NAIPES		"DCHS"
-/**
-Ordem das cartas
-*/
+
+/* Ordem das cartas */
 #define VALORES		"3456789TJQKA2"
 
-#define TRUE 1
-#define FALSE 0
+/* valores usados pela funcao imprime */
+#define COR_TABULEIRO 116611    /* RGB em HEX */
+#define XC_INIT 10              /* x inicial pra cartas */
+#define YC_INIT 10              /* y inicial pra cartas */
+#define XC_STEP 20              /* salto do x pra cartas */
+#define YC_STEP 150             /* salto do y pra cartas */
+#define YJ_INIT 0               /* y inicial pra jogador */
+#define YJ_STEP 150             /* salto do y pra jogador */
 
 /**
 Estado inicial com todas as 52 cartas do baralho
@@ -93,11 +93,13 @@ int carta_existe (const unsigned long long int ESTADO, int naipe, int valor)
 */
 void imprime_carta (char *path, const int x, const int y, const unsigned long long int ESTADO, int naipe, int valor)
 {
+    /*
     char *suit = NAIPES;
     char *rank = VALORES;
+    */
     char script[10240];
     sprintf(script, "%s?q=%lld", SCRIPT, rem_carta(ESTADO, naipe, valor));
-    printf("<a xlink:href = \"%s\"><image x = \"%d\" y = \"%d\" height = \"110\" width = \"80\" xlink:href = \"%s/%c%c.svg\" /></a>\n", script, x, y, path, rank[valor], suit[naipe]);
+    printf("<a xlink:href = \"%s\"><image x = \"%d\" y = \"%d\" height = \"110\" width = \"80\" xlink:href = \"%s/%c%c.svg\" /></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
 }
 
 /** \brief Imprime o estado
@@ -108,39 +110,44 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 */
 void imprime (char *path, long long int mao[])
 {
-    int n; /* naipe */
-    int v; /* valor */
-    int y = 10, x = 10; /* posicao inicial das cartas */
-    //int m; /* maos */
+    int n;              /* naipe */
+    int v;              /* valor */
+    int j;              /* jogador */
+    int xc = XC_INIT;   /* x inicial */
+    int yc = YC_INIT;   /* y inicial */
+    int yj = 0;         /* tabuleiros dos jogadores */
+
 
     printf("<svg height = \"800\" width = \"800\">\n");
-    printf("<rect x = \"0\" y = \"0\" height = \"800\" width = \"800\" style = \"fill:#007700\"/>\n");
 
-    //for (m = 0; m < 4; m++) {
-    //for(y = 10, n = 0; n < 4; n++, y += 120) {
-    for (n = 0; n < 4; n++)
-        for (v = 0; v < 13; v++)
-            if (carta_existe(mao[0], n, v)) {
-                x += 20;
-                imprime_carta(path, x, y, mao[0], n, v);
+    for (j = 0; j < 4; yj += YC_STEP, yc += YC_STEP, j++) {
+        printf("Jogador %d\n", j);
+        printf("<rect x = \"0\" y = \"%d\" height = \"130\" width = \"400\" style = \"fill:#%d\"/>\n", yj, COR_TABULEIRO);
+        printf("<svg height = \"800\" width = \"800\">\n");
+        for (xc = 10, n = 0; n < 4; n++)
+            for (v = 0; v < 13; v++) {
+                if (carta_existe(mao[j], n, v)) {
+                    xc += XC_STEP;
+                    imprime_carta(path, xc, yc, mao[j], n, v);
+                }
             }
-    //}
+        printf("</svg>\n");
+    }
     printf("</svg>\n");
 }
 
 void baralhar (long long int mao[], int ncartas[])
 {
-    int n; /* naipe */
-    int f; /* figura */
-    int j; /* jogador */
-    /* int ncartas[4] = {0}; */ /* n de cartas de cada jogador */
+    int n;      /* naipe */
+    int v;      /* valor */
+    int j;      /* jogador */
 
     for (n = 0; n < 4; n++)
-        for (f = 0; f < 13; f++) {
+        for (v = 0; v < 13; v++) {
             do {
                 j = random() % 4;
             } while (ncartas[j] >= 13);
-            mao[j] = add_carta(mao[j], n, f);
+            mao[j] = add_carta(mao[j], n, v);
             ncartas[j]++;
         }
 }
@@ -153,9 +160,10 @@ Cada carta corresponde a um bit que está a 1 se essa carta está no conjunto e 
 Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão presentes.
 @param query A query que é passada à cgi-bin
 */
-void parse (char *query, int ncartas[])
+void parse (char *query)
 {
     long long int mao[4] = {0}; /* comecam todas vazias */
+    int ncartas[4] = {0}; /* jogadores comecam com 0 cartas */
 
     if (sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
         imprime(BARALHO, mao);
@@ -172,19 +180,18 @@ a função que vai imprimir o código html para desenhar as cartas
 */
 int main ()
 {
-    int ncartas[4] = {0}; /* jogadores comecam com 0 cartas */
     /*
     int jactual = (jactual + 1) % 4;
     */
     srandom(time(NULL));
-/* Cabeçalhos necessários numa CGI */
+    /* Cabeçalhos necessários numa CGI */
     printf("Content-Type: text/html; charset=utf-8\n\n");
     printf("<header><title>Big Two</title></header>\n");
     printf("<body>\n");
     printf("<h1>Big Two</h1>\n");
     /* if (jactual == 0) { */ /* vez do jogador */
     /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
-    parse(getenv("QUERY_STRING"), ncartas);
+    parse(getenv("QUERY_STRING"));
     printf("</body>\n");
     /* } else {
         faz_jogada();
