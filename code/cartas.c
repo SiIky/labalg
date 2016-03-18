@@ -29,7 +29,7 @@ Estado inicial com todas as 52 cartas do baralho
 Cada carta é representada por um bit que está
 a 1 caso ela pertença à mão ou 0 caso contrário
 */
-const long long int ESTADO_INICIAL = 0xfffffffffffff;
+const unsigned long long int ESTADO_INICIAL = 0xfffffffffffff;
 
 /** \brief Devolve o índice da carta
 
@@ -106,80 +106,44 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 @param path	o URL correspondente à pasta que contém todas as cartas
 @param ESTADO	O estado atual
 */
-void imprime (char *path, long long int mao[])
+void imprime (char *path, long long int mao)
 {
-    int n; /* naipe palhaco */
-    int v; /* valor palhaco */
-    int x, y;
-    //int m; /* maos palhaco */
+    int n; /* naipe */
+    int v; /* valor */
+    int x, y; /* posicao a imprimir as cartas */
+    //int m; /* maos */
 
     printf("<svg height = \"800\" width = \"800\">\n");
     printf("<rect x = \"0\" y = \"0\" height = \"800\" width = \"800\" style = \"fill:#007700\"/>\n");
 
     //for (m = 0; m < 4; m++) {
     //for(y = 10, n = 0; n < 4; n++, y += 120) {
-    for(y = 10, n = 0; n < 4; n++) {
-        for(x = 10, v = 0; v < 13; v++) {
-            if(carta_existe(mao[0], n, v)) {
+    for (y = 10, n = 0; n < 4; n++)
+        for (x = 10, v = 0; v < 13; v++)
+            if (carta_existe(mao, n, v)) {
                 x += 20;
-                imprime_carta(path, x, y, mao[0], n, v);
+                imprime_carta(path, x, y, mao, n, v);
             }
-        }
-    }
     //}
-
     printf("</svg>\n");
 }
 
-void escolhe_jogador (int naipe, int valor, long long int mao[], int ncartas[])
+void baralhar (long long int mao, int ncartas[])
 {
+    int n; /* naipe */
+    int f; /* figura */
     int j; /* jogador */
+    /* int ncartas[4] = {0}; */ /* n de cartas de cada jogador */
 
-            while (TRUE) {
-                j = random() % 4;
-                if (ncartas[j] < 13) {
-                    add_carta (mao[j], naipe, valor);
-                    ++ncartas[j];
-                    break;
-                }
-            }
-}
-
-void baralhar (long long int mao[])
-{
-    int n; // naipe
-    int v; // valor
-    int ncartas[4]; // contador de cartas de cada jogador
-
-    ncartas[0] = ncartas[1] = ncartas[2] = ncartas[3] = 0;
-
-    srandom(time(NULL));
-    for (n = 0; n < 4; n++) {
-        for (v = 0; v < 13; v++) {
-            escolhe_jogador(n, v, mao, ncartas);
-        }
-    }
-}
-
-/*
-void baralhar (long long int mao[])
-{
-    int n;
-    int f;
-    int j;
-    int ncartas[4];
-
-    for (n = 0; n < 4; n++) {
+    for (n = 0; n < 4; n++)
         for (f = 0; f < 13; f++) {
             do {
                 j = random() % 4;
             } while (ncartas[j] >= 13);
-            add_carta(mao[j], n, f);
+            add_carta(mao, n, f);
             ncartas[j]++;
         }
-    }
 }
-*/
 
 /** \brief Trata os argumentos da CGI
 
@@ -189,14 +153,15 @@ Cada carta corresponde a um bit que está a 1 se essa carta está no conjunto e 
 Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão presentes.
 @param query A query que é passada à cgi-bin
 */
-void parse (char *query)
+void parse (char *query, int ncartas[])
 {
-    long long int mao[4];
+    long long int mao = ESTADO_INICIAL;
 
-    if (sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
+    /*if (sscanf(query, "q=%lld+%lld+%lld+%lld", &(mao+0), &(mao+1), &(mao+2), &(mao+3)) == 1) {*/
+    if (query != NULL && sscanf(query, "q=%lld", &mao) == 1) {
         imprime(BARALHO, mao);
     } else {
-        baralhar(mao);
+        baralhar(mao, ncartas);
         imprime(BARALHO, mao);
     }
 }
@@ -208,24 +173,26 @@ a função que vai imprimir o código html para desenhar as cartas
 */
 int main ()
 {
+    int ncartas[4] = {0};
     /*
-    int ncartas[4];
     int jactual = (jactual + 1) % 4;
     */
+    srandom(time(NULL));
 /*
  * Cabeçalhos necessários numa CGI
  */
     printf("Content-Type: text/html; charset=utf-8\n\n");
     printf("<header><title>Big Two</title></header>\n");
     printf("<body>\n");
-
     printf("<h1>Big Two</h1>\n");
-
-/*
- * Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa
- */
-    parse(getenv("QUERY_STRING"));
-
+    /* if (jactual == 0) { */ /* vez do jogador */
+    /*
+     * Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa
+     */
+    parse(getenv("QUERY_STRING"), ncartas);
     printf("</body>\n");
+    /* } else {
+        faz_jogada();
+    } */
     return 0;
 }
