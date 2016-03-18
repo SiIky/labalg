@@ -106,11 +106,11 @@ Esta função está a imprimir o estado em quatro colunas: uma para cada naipe
 @param path	o URL correspondente à pasta que contém todas as cartas
 @param ESTADO	O estado atual
 */
-void imprime (char *path, long long int mao)
+void imprime (char *path, long long int mao[])
 {
     int n; /* naipe */
     int v; /* valor */
-    int x, y; /* posicao a imprimir as cartas */
+    int y = 10, x = 10; /* posicao inicial das cartas */
     //int m; /* maos */
 
     printf("<svg height = \"800\" width = \"800\">\n");
@@ -118,17 +118,17 @@ void imprime (char *path, long long int mao)
 
     //for (m = 0; m < 4; m++) {
     //for(y = 10, n = 0; n < 4; n++, y += 120) {
-    for (y = 10, n = 0; n < 4; n++)
-        for (x = 10, v = 0; v < 13; v++)
-            if (carta_existe(mao, n, v)) {
+    for (n = 0; n < 4; n++)
+        for (v = 0; v < 13; v++)
+            if (carta_existe(mao[0], n, v)) {
                 x += 20;
-                imprime_carta(path, x, y, mao, n, v);
+                imprime_carta(path, x, y, mao[0], n, v);
             }
     //}
     printf("</svg>\n");
 }
 
-void baralhar (long long int mao, int ncartas[])
+void baralhar (long long int mao[], int ncartas[])
 {
     int n; /* naipe */
     int f; /* figura */
@@ -140,7 +140,7 @@ void baralhar (long long int mao, int ncartas[])
             do {
                 j = random() % 4;
             } while (ncartas[j] >= 13);
-            add_carta(mao, n, f);
+            mao[j] = add_carta(mao[j], n, f);
             ncartas[j]++;
         }
 }
@@ -155,10 +155,9 @@ Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão pr
 */
 void parse (char *query, int ncartas[])
 {
-    long long int mao = ESTADO_INICIAL;
+    long long int mao[4] = {0}; /* comecam todas vazias */
 
-    /*if (sscanf(query, "q=%lld+%lld+%lld+%lld", &(mao+0), &(mao+1), &(mao+2), &(mao+3)) == 1) {*/
-    if (query != NULL && sscanf(query, "q=%lld", &mao) == 1) {
+    if (sscanf(query, "q=%lld+%lld+%lld+%lld", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
         imprime(BARALHO, mao);
     } else {
         baralhar(mao, ncartas);
@@ -173,22 +172,18 @@ a função que vai imprimir o código html para desenhar as cartas
 */
 int main ()
 {
-    int ncartas[4] = {0};
+    int ncartas[4] = {0}; /* jogadores comecam com 0 cartas */
     /*
     int jactual = (jactual + 1) % 4;
     */
     srandom(time(NULL));
-/*
- * Cabeçalhos necessários numa CGI
- */
+/* Cabeçalhos necessários numa CGI */
     printf("Content-Type: text/html; charset=utf-8\n\n");
     printf("<header><title>Big Two</title></header>\n");
     printf("<body>\n");
     printf("<h1>Big Two</h1>\n");
     /* if (jactual == 0) { */ /* vez do jogador */
-    /*
-     * Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa
-     */
+    /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
     parse(getenv("QUERY_STRING"), ncartas);
     printf("</body>\n");
     /* } else {
