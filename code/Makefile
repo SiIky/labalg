@@ -1,4 +1,5 @@
 CFLAGS=-Wall -Wextra -pedantic -Wno-long-long -O2
+DFLAGS=-Wall -Wextra -pedantic -Wno-long-long -g
 OBJS=$(patsubst %.c,%.o,$(wildcard *.c))
 EXEC=cartas
 CC=gcc
