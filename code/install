@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-cp -i cartas /usr/lib/cgi-bin

@@ -8,3 +8,6 @@ $(EXEC): $(OBJS)
 
 clean:
 	rm $(EXEC) *.o
+
+install: cartas
+	sudo cp $(EXEC) /usr/lib/cgi-bin

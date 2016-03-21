@@ -37,7 +37,7 @@ const unsigned long long int ESTADO_INICIAL = 0xfffffffffffff;
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         O índice correspondente à carta
 */
-int indice (int naipe, int valor)
+int indice (const int naipe, const int valor)
 {
     return naipe * 13 + valor;
 }
@@ -49,10 +49,10 @@ int indice (int naipe, int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         O novo estado
 */
-long long int add_carta (unsigned long long int ESTADO, int naipe, int valor)
+unsigned long long int add_carta (unsigned long long int ESTADO, const int naipe, const int valor)
 {
     int idx = indice(naipe, valor);
-    return ESTADO | ((long long int) 1 << idx);
+    return ESTADO | ((unsigned long long int) 1 << idx);
 }
 
 /** \brief Remove uma carta do estado
@@ -62,10 +62,10 @@ long long int add_carta (unsigned long long int ESTADO, int naipe, int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         O novo estado
 */
-long long int rem_carta (unsigned long long int ESTADO, int naipe, int valor)
+unsigned long long int rem_carta (unsigned long long int ESTADO, const int naipe, const int valor)
 {
     int idx = indice(naipe, valor);
-    return ESTADO & ~((long long int) 1 << idx);
+    return ESTADO & ~((unsigned long long int) 1 << idx);
 }
 
 /** \brief Verifica se uma carta pertence ao estado
@@ -75,7 +75,7 @@ long long int rem_carta (unsigned long long int ESTADO, int naipe, int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe e 0 caso contrário
 */
-int carta_existe (const unsigned long long int ESTADO, int naipe, int valor)
+int carta_existe (const unsigned long long int ESTADO, const int naipe, const int valor)
 {
     int idx = indice(naipe, valor);
     unsigned long long int estado = ESTADO;
@@ -92,11 +92,15 @@ int carta_existe (const unsigned long long int ESTADO, int naipe, int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @param j        O jogador a que a carta pertence
 */
-void imprime_carta (char *path, const int x, const int y, unsigned long long int mao[], const int naipe, const int valor, const int j)
+void imprime_carta (char *path, const int x, const int y, const unsigned long long int mao[], const int naipe, const int valor, const int j, const unsigned long long int ult_jogada[], const int ncartas[], const int ult_jogador)
 {
     char script[10240];
-    mao[j] = rem_carta(mao[j], naipe, valor);
-    sprintf(script, "%s?q=%llu+%llu+%llu+%llu", SCRIPT, mao[0], mao[1], mao[2], mao[3]);
+    unsigned long long int tmp_mao[4];
+    int i;
+    for (i = 0; i < 4; i++)
+        tmp_mao[i] = mao[i];
+    tmp_mao[j] = rem_carta(mao[j], naipe, valor);
+    sprintf(script, "%s?q=%llu+%llu+%d_%llu+%llu+%d_%llu+%llu+%d_%llu+%llu+%d_%d", SCRIPT, tmp_mao[0], ult_jogada[0], ncartas[0], tmp_mao[1], ult_jogada[1], ncartas[1], tmp_mao[2], ult_jogada[2], ncartas[2], tmp_mao[3], ult_jogada[3], ncartas[3], ult_jogador);
     printf("<a xlink:href = \"%s\"><image x = \"%d\" y = \"%d\" height = \"110\" width = \"80\" xlink:href = \"%s/%c%c.svg\" /></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
 }
 
@@ -106,7 +110,7 @@ Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
 @param path     O URL correspondente à pasta que contém todas as cartas
 @param mao[]    O estado atual
 */
-void imprime (char *path, unsigned long long int mao[])
+void imprime (char *path, const unsigned long long int mao[], const unsigned long long int ult_jogada[], const int ult_jogador, const int ncartas[])
 {
     int n;              /* naipe */
     int v;              /* valor */
@@ -125,7 +129,7 @@ void imprime (char *path, unsigned long long int mao[])
             for (v = 0; v < 13; v++) {
                 if (carta_existe(mao[j], n, v)) {
                     xc += XC_STEP;
-                    imprime_carta(path, xc, yc, mao, n, v, j);
+                    imprime_carta(path, xc, yc, mao, n, v, j, ult_jogada, ncartas, ult_jogador);
                 }
             }
         }
@@ -160,14 +164,16 @@ Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão pr
 */
 void parse (char *query)
 {
-    unsigned long long int mao[4] = {0};         /* comecam todas vazias */
-    int ncartas[4] = {0};               /* jogadores comecam com 0 cartas */
+    unsigned long long int mao[4] = {0};                /* comecam todas vazias */
+    unsigned long long int ult_jogada[4] = {0};         /* comecam todas vazias */
+    int ult_jogador = -1;                               /* ultimo jogador */
+    int ncartas[4] = {0};                               /* jogadores comecam com 0 cartas */
 
-    if (sscanf(query, "q=%llu+%llu+%llu+%llu", &mao[0], &mao[1], &mao[2], &mao[3]) == 1) {
-        imprime(BARALHO, mao);
+    if (sscanf(query, "q=%llu+%llu+%d_%llu+%llu+%d_%llu+%llu+%d_%llu+%llu+%d_%d", &mao[0], &ult_jogada[0], &ncartas[0], &mao[1], &ult_jogada[1], &ncartas[1], &mao[2], &ult_jogada[2], &ncartas[2], &mao[3], &ult_jogada[3], &ncartas[3], &ult_jogador) == 1) {
+        imprime(BARALHO, mao, ult_jogada, ult_jogador, ncartas);
     } else {
         baralhar(mao, ncartas);
-        imprime(BARALHO, mao);
+        imprime(BARALHO, mao, ult_jogada, ult_jogador, ncartas);
     }
 }
 
@@ -176,7 +182,7 @@ void parse (char *query)
 Função principal do programa que imprime os cabeçalhos necessários e depois disso invoca
 a função que vai imprimir o código html para desenhar as cartas
 */
-int main ()
+int main (void)
 {
     /*
     int jactual = (jactual + 1) % 4;
