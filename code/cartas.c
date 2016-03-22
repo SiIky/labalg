@@ -33,13 +33,13 @@
 
 /* valores usados pela funcao imprime */
 #define COR_TABULEIRO "116611"    /* RGB em HEX */
-#define XC_INIT 10              /* x inicial pra cartas */
-#define YC_INIT 10              /* y inicial pra cartas */
-#define XC_STEP 20              /* salto do x pra cartas */
-#define YC_STEP 150             /* salto do y pra cartas */
-#define YC_SEL_STEP 10          /* salto de cartas seleccionadas */
-#define YJ_INIT 0               /* y inicial pra jogador */
-#define YJ_STEP 150             /* salto do y pra jogador */
+#define XC_INIT 10                /* x inicial pra cartas */
+#define YC_INIT 10                /* y inicial pra cartas */
+#define XC_STEP 20                /* salto do x pra cartas */
+#define YC_STEP 150               /* salto do y pra cartas */
+#define YC_SEL_STEP 10            /* salto de cartas seleccionadas */
+#define YJ_INIT 0                 /* y inicial pra jogador */
+#define YJ_STEP 150               /* salto do y pra jogador */
 
 /* definicoes do botao jogar */
 #define SVG_WIDTH 150
@@ -58,7 +58,7 @@
 #define ULLI unsigned long long int
 
 
-#define INDICE(N, V) (((N) * 13) + (V))
+#define INDICE(N, V) ((N) + ((V) * 4))
 
 /**
 Estado inicial com todas as 52 cartas do baralho
@@ -67,6 +67,7 @@ a 1 caso ela pertença à mão ou 0 caso contrário
 */
 const ULLI ESTADO_INICIAL = 0xfffffffffffff;
 
+/*----------------------------------------------------------------------------*/
 /** \brief Devolve o numero de bits a 1
 
 @param n        Numero do qual queremos saber quantos bits 1 tem
@@ -79,6 +80,7 @@ unsigned int bitsUm (ULLI n)
     return res;
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma jogada e valida
 
 @param jogada           As cartas seleccionadas
@@ -93,6 +95,7 @@ int jogada_valida (const ULLI jogada, const ULLI ult_jogada)
     return (jogada > ult_jogada);
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Adiciona uma carta ao estado
 
 @param ESTADO   O estado atual
@@ -106,6 +109,7 @@ ULLI add_carta (const ULLI ESTADO, const int naipe, const int valor)
     return (ESTADO | ((ULLI) 1 << idx));
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Remove uma carta do estado
 
 @param ESTADO   O estado atual
@@ -119,10 +123,11 @@ ULLI rem_carta (const ULLI ESTADO, const int naipe, const int valor)
     return (ESTADO & ~((ULLI) 1 << idx));
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Remove as cartas seleccionadas do estado
 
 @param ESTADO           O estado actual
-@param seleccao       As cartas seleccionadas
+@param seleccao         As cartas seleccionadas
 @return                 O novo estado 
 */
 ULLI rem_seleccao (const ULLI ESTADO, const ULLI seleccao)
@@ -130,6 +135,7 @@ ULLI rem_seleccao (const ULLI ESTADO, const ULLI seleccao)
     return (ESTADO & ~(seleccao));
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma carta pertence ao estado
 
 @param ESTADO   O estado atual
@@ -137,20 +143,20 @@ ULLI rem_seleccao (const ULLI ESTADO, const ULLI seleccao)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe e 0 caso contrário
 */
-int carta_existe (const ULLI ESTADO, const int naipe, const int valor)
+int carta_existe (ULLI ESTADO, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
-    ULLI estado = ESTADO;
-    return ((estado >> idx) & 1);
+    return ((ESTADO >> idx) & 1);
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Imprime o botao Jogar
 
 @param mao[]            O array com as maos de todos os jogadores
 @param ncartas[]        O array com o numero de cartas que cada jogador tem
 @param ult_jogador      O jogador anterior
 @param ult_jogada[]     Array com a ultima jogada de cada jogador
-@param seleccao       As cartas seleccionadas pelo jogador
+@param seleccao         As cartas seleccionadas pelo jogador
 */
 void imprime_bjogar (const ULLI mao[], const unsigned int ncartas[], const int ult_jogador, const ULLI ult_jogada[], const ULLI seleccao)
 {
@@ -169,6 +175,7 @@ void imprime_bjogar (const ULLI mao[], const unsigned int ncartas[], const int u
     }
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Imprime o botao Limpar
 
 @param mao[]            O array com as maos de todos os jogadores
@@ -193,6 +200,7 @@ void imprime_blimpar (const ULLI mao[], const unsigned int ncartas[], const int 
     }
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Imprime o html correspondente a uma carta
 
 @param path             O URL correspondente à pasta que contém todas as cartas
@@ -204,7 +212,7 @@ void imprime_blimpar (const ULLI mao[], const unsigned int ncartas[], const int 
 @param ult_jogada[]     Ultima jogada de cada jogador
 @param ncartas[]        Numero de cartas de cada jogador
 @param ult_jogador      O jogador anterior
-@param seleccao       As cartas seleccionadas pelo jogador
+@param seleccao         As cartas seleccionadas pelo jogador
 */
 void imprime_carta (const char *path, const int x, int y, const ULLI mao[], const int naipe, const int valor, const ULLI ult_jogada[], const unsigned int ncartas[], const int ult_jogador, const ULLI seleccao)
 {
@@ -218,6 +226,7 @@ void imprime_carta (const char *path, const int x, int y, const ULLI mao[], cons
     printf("<a xlink:href=\"%s\"><image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Imprime o estado do jogo
 
 Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
@@ -226,7 +235,7 @@ Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
 @param ult_jogada       A ultima jogada de cada jogador
 @param ult_jogador      O jogador anterior
 @param ncartas[]        O numero de cartas de cada jogador
-@param seleccao       As cartas seleccionadas pelo jogador
+@param seleccao         As cartas seleccionadas pelo jogador
 */
 void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const int ult_jogador, const unsigned int ncartas[], const ULLI seleccao)
 {
@@ -257,6 +266,7 @@ void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const
     imprime_blimpar(mao, ncartas, ult_jogador, ult_jogada, seleccao);
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Da as cartas a cada jogador no inicio do jogo
 
 @param mao[]            As maos de cada jogador
@@ -278,6 +288,7 @@ void baralhar (ULLI mao[], unsigned int ncartas[])
         }
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Trata os argumentos da CGI
 
 Esta função recebe a query que é passada à cgi-bin e trata-a.
@@ -290,7 +301,7 @@ void parse (char *query)
 {
     ULLI mao[4] = {0};                /* comecam todas vazias */
     ULLI ult_jogada[4] = {0};         /* comecam todas vazias */
-    ULLI seleccao = 0;              /* cartas seleccionadas pelo jogador */
+    ULLI seleccao = 0;                /* cartas seleccionadas pelo jogador */
     unsigned int ncartas[4] = {0};    /* jogadores comecam com 0 cartas */
     int ult_jogador = -1;             /* ultimo jogador */
 
@@ -302,6 +313,7 @@ void parse (char *query)
     }
 }
 
+/*----------------------------------------------------------------------------*/
 /** \brief Função principal
 
 Função principal do programa que imprime os cabeçalhos necessários e depois disso invoca
