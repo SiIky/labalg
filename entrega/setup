@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-mkdir -p $1/cards
-mkdir -p $1/code
 mkdir -p $1/doc
 cp -r cards $1
+cp -r ../code $1
 cp enpacotar $1
 cp identificacao $1
 cp Makefile $1
