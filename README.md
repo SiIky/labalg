@@ -17,23 +17,23 @@
 
 ## GIT
 ### Clone
-´´´git clone´´´ quando nao se tem o repositorio
+`git clone` quando nao se tem o repositorio
 ### Status
-´´´git status´´´ pra ver qual o estado do repositorio (se tem alteracoes, etc)
+`git status` pra ver qual o estado do repositorio (se tem alteracoes, etc)
 ### Pull
-´´´git pull´´´ pra puxar as actualizacoes (se houver) do repositorio
+`git pull` pra puxar as actualizacoes (se houver) do repositorio
 ### Add
-´´´git status´´´ pra adicionar ficheiros ao stage, pra enviar
+`git status` pra adicionar ficheiros ao stage, pra enviar
 ### Commit
-´´´git commit´´´ pra finalizar as mudancas
+`git commit` pra finalizar as mudancas
 ### Push
-´´´git push´´´ pra enviar alteracoes pro repositorio remoto
+`git push` pra enviar alteracoes pro repositorio remoto
 
-Pra enviar mudancas:
+### Pra enviar mudancas:
 
-´´´shell
+```shell
 $ git status
 $ git add <ficheiros> # ou pode se usar a flag -A pra por tudo em stage
 $ git commit
 $ git push
-´´´
+```
