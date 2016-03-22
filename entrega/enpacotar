@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+TURNO=PL2
+GRUPO=g11
+ETAPA=et1
+FILE=$TURNO-$GRUPO-$ETAPA.tar.bz2
+cp -f ./Makefile ./code
+tar jcf $FILE identificacao cards code doc

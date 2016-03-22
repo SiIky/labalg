@@ -1,0 +1,6 @@
+1. ./setup <path/to/dir/>
+2. cd <path/to/dir/entrega/>
+3. correr o doxygen na pasta code
+4. mover o conteudo das pastas geradas pelo doxygen para doc
+5. ./enpacotar
+6. $$$$ PROFIT! $$$$
