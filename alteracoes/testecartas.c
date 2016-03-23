@@ -272,7 +272,7 @@ void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const
 @param mao[]            As maos de cada jogador
 @param ncartas[]        O numero de cartas de cada jogador
 */
-void baralhar (ULLI mao[], unsigned int ncartas[])
+long long int baralhar (ULLI mao[], unsigned int ncartas[])
 {
     int n;      /* naipe */
     int v;      /* valor */
