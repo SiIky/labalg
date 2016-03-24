@@ -4,14 +4,14 @@
 #include <time.h>
 
 /* =========================================================
- * Definicao das Format Strings pra printf e etc
+ * Definição das Format Strings para printf e etc
  *
  *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
  *
  *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)"
  *
  * =========================================================
- * Ultima jogada:
+ * Última jogada:
  *
  *   == 0 -> PASSOU
  *   != 0 -> JOGOU
@@ -31,21 +31,21 @@
 /* Ordem das cartas */
 #define VALORES         "3456789TJQKA2"
 
-/* valores usados pela funcao imprime */
+/* valores usados pela função imprime */
 #define COR_TABULEIRO "116611"    /* RGB em HEX */
-#define XC_INIT 10                /* x inicial pra cartas */
-#define YC_INIT 10                /* y inicial pra cartas */
-#define XC_STEP 20                /* salto do x pra cartas */
-#define YC_STEP 150               /* salto do y pra cartas */
-#define YC_SEL_STEP 10            /* salto de cartas seleccionadas */
-#define YJ_INIT 0                 /* y inicial pra jogador */
-#define YJ_STEP 150               /* salto do y pra jogador */
+#define XC_INIT 10                /* x inicial para cartas */
+#define YC_INIT 10                /* y inicial para cartas */
+#define XC_STEP 20                /* salto do x para cartas */
+#define YC_STEP 150               /* salto do y para cartas */
+#define YC_SEL_STEP 10            /* salto de cartas selecionadas */
+#define YJ_INIT 0                 /* y inicial para jogador */
+#define YJ_STEP 150               /* salto do y para jogador */
 
-/* definicoes do botao jogar */
+/* definições do botão jogar */
 #define SVG_WIDTH 150
 #define SVG_HEIGHT 200
-#define COR_BOT_A "C99660"      /* cor dos botoes activos */
-#define COR_BOT_D "999999"      /* cor dos botoes nao activos */
+#define COR_BOT_A "C99660"      /* cor dos botões ativados */
+#define COR_BOT_D "999999"      /* cor dos botões não ativados */
 #define RECT_X 50
 #define RECT_Y 50
 #define RECT_WIDTH 100
@@ -53,7 +53,7 @@
 #define TXT_X 100
 #define TXT_Y 80
 
-/* comprimento max de strings */
+/* comprimento máximo das strings */
 #define MAXLEN 10240
 
 #define INDICE(N, V) ((N) + ((V) * 4))
@@ -105,10 +105,10 @@ char *estado2str (const ESTADO e)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Devolve o numero de bits a 1
+/** \brief Devolve o número de bits a 1
 
-@param n        Numero a calcular
-@return         O numero de bits 1
+@param n        Número a calcular
+@return         O número de bits 1
 */
 unsigned int bitsUm (MAO n)
 {
@@ -118,11 +118,11 @@ unsigned int bitsUm (MAO n)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Verifica se uma jogada e valida
+/** \brief Verifica se uma jogada é válida
 
-@param jogada           As cartas seleccionadas
-@param ult_jogada       A ultima jogada do ultimo jogador
-@return                 Devolve 1 se for valida, 0 caso contrario
+@param jogada           As cartas selecionadas
+@param ult_jogada       A última jogada do último jogador
+@return                 Devolve 1 se for válida, 0 caso contrário
 */
 int jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
@@ -135,10 +135,10 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
 /*----------------------------------------------------------------------------*/
 /** \brief Adiciona uma carta ao estado
 
-@param e        Uma mao
+@param e        Uma mão
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
-@return         A nova mao
+@return         A nova mão
 */
 MAO add_carta (const MAO e, const int naipe, const int valor)
 {
@@ -149,10 +149,10 @@ MAO add_carta (const MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Remove uma carta do estado
 
-@param e        Uma mao
+@param e        Uma mão
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
-@return         A nova mao
+@return         A nova mão
 */
 MAO rem_carta (const MAO e, const int naipe, const int valor)
 {
@@ -161,11 +161,11 @@ MAO rem_carta (const MAO e, const int naipe, const int valor)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Remove as cartas seleccionadas do estado
+/** \brief Remove as cartas selecionadas do estado
 
-@param e                Uma mao
-@param seleccao         As cartas seleccionadas
-@return                 A nova mao
+@param e                Uma mão
+@param seleccao         As cartas selecionadas
+@return                 A nova mão
 */
 MAO rem_seleccao (const MAO e, const MAO seleccao)
 {
@@ -175,7 +175,7 @@ MAO rem_seleccao (const MAO e, const MAO seleccao)
 /*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma carta pertence ao estado
 
-@param e        Uma mao
+@param e        Uma mão
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe, 0 caso contrário
@@ -187,9 +187,9 @@ int carta_existe (MAO e, const int naipe, const int valor)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Imprime o botao Jogar
+/** \brief Imprime o botão Jogar
 
-@param e        O estado actual do jogo
+@param e        O estado atual do jogo
 */
 void imprime_bjogar (ESTADO e)
 {
@@ -214,9 +214,9 @@ void imprime_bjogar (ESTADO e)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Imprime o botao Limpar
+/** \brief Imprime o botão Limpar
 
-@param e        O estado actual do jogo
+@param e        O estado atual do jogo
 */
 void imprime_blimpar (ESTADO e)
 {
@@ -241,7 +241,7 @@ void imprime_blimpar (ESTADO e)
 @param path     O URL correspondente à pasta que contém todas as cartas
 @param x        A coordenada x da carta
 @param y        A coordenada y da carta
-@param e        O estado actual do jogo
+@param e        O estado atual do jogo
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 */
@@ -262,9 +262,9 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o estado do jogo
 
-Esta função imprime a mao do jogador
+Esta função imprime a mão do jogador
 @param *path    O URL correspondente à pasta que contém todas as cartas
-@param e        O estado actual do jogo
+@param e        O estado atual do jogo
 */
 void imprime (const char *path, const ESTADO e)
 {
@@ -296,9 +296,9 @@ void imprime (const char *path, const ESTADO e)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Da as cartas a cada jogador no inicio do jogo
+/** \brief Dá as cartas a cada jogador no início do jogo
 
-@param e        O estado actual do jogo
+@param e        O estado atual do jogo
 @return e       O novo estado do jogo
 */
 ESTADO baralhar (ESTADO e)
@@ -323,8 +323,8 @@ ESTADO baralhar (ESTADO e)
 
 Esta função recebe a query que é passada à cgi-bin e trata-a.
 A query contém o estado do jogo.
-Cada carta corresponde a um bit que está a 1 se essa carta pertence ao conjunto e a 0 caso contrário.
-Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda pra comecar.
+Cada carta corresponde a um bit que está a 1 se essa carta pertence ao conjunto, e a 0 caso contrário.
+Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para começar.
 @param query    A query que é passada à cgi-bin
 */
 void parse (char *query)
@@ -333,13 +333,13 @@ void parse (char *query)
     ESTADO e;                           /* estado do jogo */
 
     for (i = 0; i < 4; i++) {
-        e.mao[i] = 0;                   /* comecam todas vazias */
-        e.ult_jogada[i] = 0;            /* comecam todas vazias */
-        e.ncartas[i] = 0;               /* jogadores comecam com 0 cartas */
+        e.mao[i] = 0;                   /* começam todas vazias */
+        e.ult_jogada[i] = 0;            /* começam todas vazias */
+        e.ncartas[i] = 0;               /* jogadores começam com 0 cartas */
     }
 
-    e.seleccao = 0;                     /* cartas seleccionadas pelo jogador */
-    e.ult_jogador = 7;                  /* ultimo jogador */
+    e.seleccao = 0;                     /* cartas selecionadas pelo jogador */
+    e.ult_jogador = 7;                  /* último jogador */
 
     if ((query != NULL) && (strlen(query) != 0)) {
         e = str2estado(query);

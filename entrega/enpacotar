@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-GRUPO=PLg11
+GRUPO=23
 ETAPA=et1
 FILE=$GRUPO-$ETAPA.tar.bz2
 cp -f ./Makefile ./code
