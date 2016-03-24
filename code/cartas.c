@@ -113,8 +113,8 @@ char *estado2str (const ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Devolve o numero de bits a 1
 
-@param n        Numero do qual queremos saber quantos bits 1 tem
-@return         O numero de bits a 1
+@param n        Numero a calcular
+@return         O numero de bits 1
 */
 unsigned int bitsUm (MAO n)
 {
@@ -141,10 +141,10 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
 /*----------------------------------------------------------------------------*/
 /** \brief Adiciona uma carta ao estado
 
-@param e        O estado atual
+@param e        Uma mao
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
-@return         O novo estado
+@return         A nova mao
 */
 MAO add_carta (const MAO e, const int naipe, const int valor)
 {
@@ -155,10 +155,10 @@ MAO add_carta (const MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Remove uma carta do estado
 
-@param e        O estado atual
+@param e        Uma mao
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
-@return         O novo estado
+@return         A nova mao
 */
 MAO rem_carta (const MAO e, const int naipe, const int valor)
 {
@@ -169,9 +169,9 @@ MAO rem_carta (const MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Remove as cartas seleccionadas do estado
 
-@param e                A mao do jogador
+@param e                Uma mao
 @param seleccao         As cartas seleccionadas
-@return                 O novo estado da mao
+@return                 A nova mao
 */
 MAO rem_seleccao (const MAO e, const MAO seleccao)
 {
@@ -181,10 +181,10 @@ MAO rem_seleccao (const MAO e, const MAO seleccao)
 /*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma carta pertence ao estado
 
-@param e        O estado atual
+@param e        Uma mao
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
-@return         1 se a carta existe e 0 caso contrário
+@return         1 se a carta existe, 0 caso contrário
 */
 int carta_existe (MAO e, const int naipe, const int valor)
 {
@@ -195,11 +195,7 @@ int carta_existe (MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o botao Jogar
 
-@param mao[]            O array com as maos de todos os jogadores
-@param ncartas[]        O array com o numero de cartas que cada jogador tem
-@param ult_jogador      O jogador anterior
-@param ult_jogada[]     Array com a ultima jogada de cada jogador
-@param seleccao         As cartas seleccionadas pelo jogador
+@param e        O estado actual do jogo
 */
 void imprime_bjogar (ESTADO e)
 {
@@ -226,11 +222,7 @@ void imprime_bjogar (ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o botao Limpar
 
-@param mao[]            O array com as maos de todos os jogadores
-@param ncartas[]        O array com o numero de cartas que cada jogador tem
-@param ult_jogador      O jogador anterior
-@param ult_jogada[]     Array com a ultima jogada de cada jogador
-@param seleccao         Cartas seleccionadas pelo jogador
+@param e        O estado actual do jogo
 */
 void imprime_blimpar (ESTADO e)
 {
@@ -252,16 +244,12 @@ void imprime_blimpar (ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o html correspondente a uma carta
 
-@param path             O URL correspondente à pasta que contém todas as cartas
-@param x                A coordenada x da carta
-@param y                A coordenada y da carta
-@param mao[]            O estado atual
-@param naipe            O naipe da carta (inteiro entre 0 e 3)
-@param valor            O valor da carta (inteiro entre 0 e 12)
-@param ult_jogada[]     Ultima jogada de cada jogador
-@param ncartas[]        Numero de cartas de cada jogador
-@param ult_jogador      O jogador anterior
-@param seleccao         As cartas seleccionadas pelo jogador
+@param path     O URL correspondente à pasta que contém todas as cartas
+@param x        A coordenada x da carta
+@param y        A coordenada y da carta
+@param e        O estado actual do jogo
+@param naipe    O naipe da carta (inteiro entre 0 e 3)
+@param valor    O valor da carta (inteiro entre 0 e 12)
 */
 void imprime_carta (const char *path, const int x, int y, ESTADO e, const int naipe, const int valor)
 {
@@ -304,13 +292,9 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o estado do jogo
 
-Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
-@param *path            O URL correspondente à pasta que contém todas as cartas
-@param mao[]            O estado atual
-@param ult_jogada       A ultima jogada de cada jogador
-@param ult_jogador      O jogador anterior
-@param ncartas[]        O numero de cartas de cada jogador
-@param seleccao         As cartas seleccionadas pelo jogador
+Esta função imprime a mao do jogador
+@param *path    O URL correspondente à pasta que contém todas as cartas
+@param e        O estado actual do jogo
 */
 void imprime (const char *path, const ESTADO e)
 {
@@ -344,7 +328,7 @@ void imprime (const char *path, const ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Da as cartas a cada jogador no inicio do jogo
 
-@param e        O estado do jogo
+@param e        O estado actual do jogo
 @return e       O novo estado do jogo
 */
 ESTADO baralhar (ESTADO e)
@@ -368,9 +352,9 @@ ESTADO baralhar (ESTADO e)
 /** \brief Trata os argumentos da CGI
 
 Esta função recebe a query que é passada à cgi-bin e trata-a.
-Neste momento, a query contém o estado que é um inteiro que representa um conjunto de cartas.
-Cada carta corresponde a um bit que está a 1 se essa carta está no conjunto e a 0 caso contrário.
-Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão presentes.
+A query contém o estado do jogo.
+Cada carta corresponde a um bit que está a 1 se essa carta pertence ao conjunto e a 0 caso contrário.
+Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda pra comecar.
 @param query    A query que é passada à cgi-bin
 */
 void parse (char *query)
