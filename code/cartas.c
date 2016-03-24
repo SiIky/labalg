@@ -71,7 +71,7 @@ struct state
     unsigned int ult_jogador;
 };
 
-ESTADO str2estado(char *str)
+ESTADO str2estado (const char *str)
 {
     ESTADO e;
 
@@ -91,9 +91,9 @@ ESTADO str2estado(char *str)
     return e;
 }
 
-char *estado2str (ESTADO e)
+char *estado2str (const ESTADO e)
 {
-    char str[MAXLEN];
+    static char str[MAXLEN];
     sprintf(str,
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
@@ -104,7 +104,7 @@ char *estado2str (ESTADO e)
         e.mao[1], e.ult_jogada[1], e.ncartas[1],
         e.mao[2], e.ult_jogada[2], e.ncartas[2],
         e.mao[3], e.ult_jogada[3], e.ncartas[3],
-        &e.ult_jogador, &e.ult_jogada
+        e.ult_jogador, e.ult_jogada
     );
 
     return str;
@@ -387,12 +387,12 @@ void parse (char *query)
     e.seleccao = 0;                     /* cartas seleccionadas pelo jogador */
     e.ult_jogador = 7;                  /* ultimo jogador */
 
-    e = str2estado(query);
-
-    if (e.ult_jogador != 7)
+    if ((query != NULL) && (strlen(query) != 0)) {
+        e = str2estado(query);
         imprime(BARALHO, e);
-    else
+    } else {
         imprime(BARALHO, baralhar(e));
+    }
 }
 
 /*----------------------------------------------------------------------------*/
