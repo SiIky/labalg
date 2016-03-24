@@ -55,8 +55,6 @@
 
 /* comprimento max de strings */
 #define MAXLEN 10240
-#define ULLI unsigned long long int
-
 
 #define INDICE(N, V) ((N) + ((V) * 4))
 
@@ -65,7 +63,57 @@ Estado inicial com todas as 52 cartas do baralho
 Cada carta é representada por um bit que está
 a 1 caso ela pertença à mão ou 0 caso contrário
 */
-const ULLI ESTADO_INICIAL = 0xfffffffffffff;
+const MAO ESTADO_INICIAL = 0xfffffffffffff;
+
+typedef unsigned long long int MAO;
+typedef struct state ESTADO;
+
+struct state
+{
+    MAO mao[4], ult_jogada[4], seleccao;
+    unsigned int ncartas[4], ult_jogador;
+};
+
+/* jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]" */
+/* "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)" */
+
+ESTADO str2estado(char *str)
+{
+    ESTADO e;
+
+    sscanf(str,
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%d_%llu",
+            &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
+            &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
+            &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
+            &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
+            &e.ult_jogador, &e.ult_jogada
+          );
+
+    return e;
+}
+
+char *estado2str (ESTADO e)
+{
+    sprintf(str,
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%d_%llu",
+            &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
+            &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
+            &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
+            &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
+            &e.ult_jogador, &e.ult_jogada;
+           );
+
+    return str;
+}
 
 /*----------------------------------------------------------------------------*/
 /** \brief Devolve o numero de bits a 1
@@ -163,7 +211,20 @@ void imprime_bjogar (const ULLI mao[], const unsigned int ncartas[], const int u
     char link[MAXLEN];
 
     if (jogada_valida(seleccao, ult_jogada[ult_jogador])) {
-    sprintf(link, "%s?q=%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%d_%llu", SCRIPT, rem_seleccao(mao[0], seleccao), seleccao, (ncartas[0]-bitsUm(seleccao)), mao[1], ult_jogada[1], ncartas[1], mao[2], ult_jogada[2], ncartas[2], mao[3], ult_jogada[3], ncartas[3], (ult_jogador+1), (ULLI) 0);
+    sprintf(link,
+            "%s?q="
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%llu+%llu+%u_"
+            "%d_%llu",
+            SCRIPT,
+            rem_seleccao(mao[0], seleccao), seleccao, (ncartas[0]-bitsUm(seleccao)),
+            mao[1], ult_jogada[1], ncartas[1],
+            mao[2], ult_jogada[2], ncartas[2],
+            mao[3], ult_jogada[3], ncartas[3],
+            (ult_jogador+1), (ULLI) 0);
+
     printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
     printf("<a xlink:href = \"%s\">\n", link);
     printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
