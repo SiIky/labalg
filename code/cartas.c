@@ -351,8 +351,8 @@ void baralhar (ESTADO e)
     int v;      /* valor */
     int j;      /* jogador */
 
-    for (n = 0; n < 4; n++)
-        for (v = 0; v < 13; v++) {
+    for (n = 0; n < 13; n++)
+        for (v = 0; v < 4; v++) {
             do {
                 j = random() % 4;
             } while (e.ncartas[j] >= 13);
