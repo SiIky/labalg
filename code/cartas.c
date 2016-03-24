@@ -58,21 +58,17 @@
 
 #define INDICE(N, V) ((N) + ((V) * 4))
 
-/**
-Estado inicial com todas as 52 cartas do baralho
-Cada carta é representada por um bit que está
-a 1 caso ela pertença à mão ou 0 caso contrário
-*/
-const MAO ESTADO_INICIAL = 0xfffffffffffff;
-
 typedef unsigned char BOOL;
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
 
 struct state
 {
-    MAO mao[4], ult_jogada[4], seleccao;
-    unsigned int ncartas[4], ult_jogador;
+    MAO mao[4];
+    MAO ult_jogada[4];
+    MAO seleccao;
+    unsigned int ncartas[4];
+    unsigned int ult_jogador;
 };
 
 ESTADO str2estado(char *str)
@@ -80,36 +76,36 @@ ESTADO str2estado(char *str)
     ESTADO e;
 
     sscanf(str,
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%d_%llu",
-            &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
-            &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
-            &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
-            &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-            &e.ult_jogador, &e.ult_jogada
-          );
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%u_%llu",
+        &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
+        &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
+        &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
+        &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
+        &e.ult_jogador, &e.ult_jogada
+    );
 
     return e;
 }
 
-char* estado2str (ESTADO e)
+char *estado2str (ESTADO e)
 {
     char str[MAXLEN];
     sprintf(str,
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%d_%llu",
-            e.mao[0], e.ult_jogada[0], e.ncartas[0],
-            e.mao[1], e.ult_jogada[1], e.ncartas[1],
-            e.mao[2], e.ult_jogada[2], e.ncartas[2],
-            e.mao[3], e.ult_jogada[3], e.ncartas[3],
-            e.ult_jogador, e.ult_jogada;
-           );
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%u_%llu",
+        e.mao[0], e.ult_jogada[0], e.ncartas[0],
+        e.mao[1], e.ult_jogada[1], e.ncartas[1],
+        e.mao[2], e.ult_jogada[2], e.ncartas[2],
+        e.mao[3], e.ult_jogada[3], e.ncartas[3],
+        &e.ult_jogador, &e.ult_jogada
+    );
 
     return str;
 }
@@ -134,7 +130,7 @@ unsigned int bitsUm (MAO n)
 @param ult_jogada       A ultima jogada do ultimo jogador
 @return                 Devolve 1 se for valida, 0 caso contrario
 */
-BOOL jogada_valida (const MAO jogada, const MAO ult_jogada)
+int jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
@@ -173,9 +169,9 @@ MAO rem_carta (const MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Remove as cartas seleccionadas do estado
 
-@param e                O estado actual
+@param e                A mao do jogador
 @param seleccao         As cartas seleccionadas
-@return                 O novo estado 
+@return                 O novo estado da mao
 */
 MAO rem_seleccao (const MAO e, const MAO seleccao)
 {
@@ -190,7 +186,7 @@ MAO rem_seleccao (const MAO e, const MAO seleccao)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe e 0 caso contrário
 */
-BOOL carta_existe (MAO e, const int naipe, const int valor)
+int carta_existe (MAO e, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
     return ((e >> idx) & 1);
@@ -205,12 +201,17 @@ BOOL carta_existe (MAO e, const int naipe, const int valor)
 @param ult_jogada[]     Array com a ultima jogada de cada jogador
 @param seleccao         As cartas seleccionadas pelo jogador
 */
-void imprime_bjogar (const ESTADO e)
+void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
 
     if (jogada_valida(e.seleccao, e.ult_jogada[e.ult_jogador])) {
-        sprintf(link, "%s?q=%s", estado2str(e));
+        e.ult_jogador = 0;
+        e.mao[0] = rem_seleccao(e.mao[0], e.seleccao);
+        e.ult_jogada[0] = e.seleccao;
+        e.seleccao = (MAO) 0;
+
+        sprintf(link, "%s?q=%s", SCRIPT, estado2str(e));
         printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
         printf("<a xlink:href = \"%s\">\n", link);
         printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
@@ -231,11 +232,12 @@ void imprime_bjogar (const ESTADO e)
 @param ult_jogada[]     Array com a ultima jogada de cada jogador
 @param seleccao         Cartas seleccionadas pelo jogador
 */
-void imprime_blimpar (const ESTADO e)
+void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
     if (e.seleccao != 0) {
-        sprintf(link, "%s?q=%s", estado2str(e));
+        e.seleccao = 0;
+        sprintf(link, "%s?q=%s", SCRIPT, estado2str(e));
         printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
         printf("<a xlink:href = \"%s\">\n", link);
         printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
@@ -310,7 +312,7 @@ Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
 @param ncartas[]        O numero de cartas de cada jogador
 @param seleccao         As cartas seleccionadas pelo jogador
 */
-void imprime (const char *path, const e)
+void imprime (const char *path, const ESTADO e)
 {
     int n;                      /* naipe */
     int v;                      /* valor */
@@ -324,11 +326,11 @@ void imprime (const char *path, const e)
     /* printf("Jogador %d\n", j); */
     printf("<rect x=\"0\" y=\"%d\" height=\"130\" width=\"400\" style=\"fill:#%s\"/>\n", yj, COR_TABULEIRO);
     printf("<svg height = \"800\" width = \"800\">\n");
-    for (xc = 10, n = 0; n < 4; n++) {
-        for (v = 0; v < 13; v++) {
-            if (carta_existe(mao[0], n, v)) {
+    for (xc = XC_INIT, v = 0; v < 13; v++) {
+        for (n = 0; n < 4; n++) {
+            if (carta_existe(e.mao[0], n, v)) {
                     xc += XC_STEP;
-                    imprime_carta(path, xc, yc, n, v, e);
+                    imprime_carta(path, xc, yc, e, n, v);
             }
         }
     }
@@ -342,10 +344,10 @@ void imprime (const char *path, const e)
 /*----------------------------------------------------------------------------*/
 /** \brief Da as cartas a cada jogador no inicio do jogo
 
-@param mao[]            As maos de cada jogador
-@param ncartas[]        O numero de cartas de cada jogador
+@param e        O estado do jogo
+@return e       O novo estado do jogo
 */
-void baralhar (ESTADO e)
+ESTADO baralhar (ESTADO e)
 {
     int n;      /* naipe */
     int v;      /* valor */
@@ -359,6 +361,7 @@ void baralhar (ESTADO e)
             e.mao[j] = add_carta(e.mao[j], n, v);
             e.ncartas[j]++;
         }
+    return e;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -372,19 +375,24 @@ Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão pr
 */
 void parse (char *query)
 {
-    ESTADO e;
-    e.mao[4] = {0};             /* comecam todas vazias */
-    e.ult_jogada[4] = {0};      /* comecam todas vazias */
-    e.seleccao = 0;             /* cartas seleccionadas pelo jogador */
-    e.ncartas[4] = {0};         /* jogadores comecam com 0 cartas */
-    e.ult_jogador = -1;         /* ultimo jogador */
+    int i;
+    ESTADO e;                           /* estado do jogo */
 
-    if (e = str2estado(query))
-        imprime(BARALHO, e);
-    } else {
-        baralhar(e);
-        imprime(BARALHO, e);
+    for (i = 0; i < 4; i++) {
+        e.mao[i] = 0;                   /* comecam todas vazias */
+        e.ult_jogada[i] = 0;            /* comecam todas vazias */
+        e.ncartas[i] = 0;               /* jogadores comecam com 0 cartas */
     }
+
+    e.seleccao = 0;                     /* cartas seleccionadas pelo jogador */
+    e.ult_jogador = 7;                  /* ultimo jogador */
+
+    e = str2estado(query);
+
+    if (e.ult_jogador != 7)
+        imprime(BARALHO, e);
+    else
+        imprime(BARALHO, baralhar(e));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -396,13 +404,16 @@ a função que vai imprimir o código html para desenhar as cartas
 int main (void)
 {
     srandom(time(NULL));
+
     /* Cabeçalhos necessários numa CGI */
     printf("Content-Type: text/html; charset=utf-8\n\n");
     printf("<header><title>Big Two</title></header>\n");
     printf("<body>\n");
     printf("<h1>Big Two</h1>\n");
+
     /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
     parse(getenv("QUERY_STRING"));
     printf("</body>\n");
+
     return 0;
 }
