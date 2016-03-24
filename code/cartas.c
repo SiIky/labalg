@@ -65,6 +65,7 @@ a 1 caso ela pertença à mão ou 0 caso contrário
 */
 const MAO ESTADO_INICIAL = 0xfffffffffffff;
 
+typedef unsigned char BOOL;
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
 
@@ -73,9 +74,6 @@ struct state
     MAO mao[4], ult_jogada[4], seleccao;
     unsigned int ncartas[4], ult_jogador;
 };
-
-/* jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]" */
-/* "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)" */
 
 ESTADO str2estado(char *str)
 {
@@ -97,7 +95,7 @@ ESTADO str2estado(char *str)
     return e;
 }
 
-char *estado2str (ESTADO e)
+char* estado2str (ESTADO e)
 {
     sprintf(str,
             "%llu+%llu+%u_"
@@ -121,7 +119,7 @@ char *estado2str (ESTADO e)
 @param n        Numero do qual queremos saber quantos bits 1 tem
 @return         O numero de bits a 1
 */
-unsigned int bitsUm (ULLI n)
+unsigned int bitsUm (MAO n)
 {
     unsigned int res;
     for (res = 0; n > 0; res += n % 2, n >>= 1);
@@ -135,7 +133,7 @@ unsigned int bitsUm (ULLI n)
 @param ult_jogada       A ultima jogada do ultimo jogador
 @return                 Devolve 1 se for valida, 0 caso contrario
 */
-int jogada_valida (const ULLI jogada, const ULLI ult_jogada)
+int jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
@@ -146,55 +144,55 @@ int jogada_valida (const ULLI jogada, const ULLI ult_jogada)
 /*----------------------------------------------------------------------------*/
 /** \brief Adiciona uma carta ao estado
 
-@param ESTADO   O estado atual
+@param e        O estado atual
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         O novo estado
 */
-ULLI add_carta (const ULLI ESTADO, const int naipe, const int valor)
+MAO add_carta (const MAO e, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
-    return (ESTADO | ((ULLI) 1 << idx));
+    return (e | ((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
 /** \brief Remove uma carta do estado
 
-@param ESTADO   O estado atual
+@param e        O estado atual
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         O novo estado
 */
-ULLI rem_carta (const ULLI ESTADO, const int naipe, const int valor)
+MAO rem_carta (const MAO e, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
-    return (ESTADO & ~((ULLI) 1 << idx));
+    return (e & ~((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
 /** \brief Remove as cartas seleccionadas do estado
 
-@param ESTADO           O estado actual
+@param e                O estado actual
 @param seleccao         As cartas seleccionadas
 @return                 O novo estado 
 */
-ULLI rem_seleccao (const ULLI ESTADO, const ULLI seleccao)
+MAO rem_seleccao (const MAO e, const MAO seleccao)
 {
-    return (ESTADO & ~(seleccao));
+    return (e & ~(seleccao));
 }
 
 /*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma carta pertence ao estado
 
-@param ESTADO   O estado atual
+@param e        O estado atual
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe e 0 caso contrário
 */
-int carta_existe (ULLI ESTADO, const int naipe, const int valor)
+int carta_existe (MAO e, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
-    return ((ESTADO >> idx) & 1);
+    return ((e >> idx) & 1);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -206,33 +204,20 @@ int carta_existe (ULLI ESTADO, const int naipe, const int valor)
 @param ult_jogada[]     Array com a ultima jogada de cada jogador
 @param seleccao         As cartas seleccionadas pelo jogador
 */
-void imprime_bjogar (const ULLI mao[], const unsigned int ncartas[], const int ult_jogador, const ULLI ult_jogada[], const ULLI seleccao)
+void imprime_bjogar (const ESTADO e)
 {
     char link[MAXLEN];
 
-    if (jogada_valida(seleccao, ult_jogada[ult_jogador])) {
-    sprintf(link,
-            "%s?q="
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%llu+%llu+%u_"
-            "%d_%llu",
-            SCRIPT,
-            rem_seleccao(mao[0], seleccao), seleccao, (ncartas[0]-bitsUm(seleccao)),
-            mao[1], ult_jogada[1], ncartas[1],
-            mao[2], ult_jogada[2], ncartas[2],
-            mao[3], ult_jogada[3], ncartas[3],
-            (ult_jogador+1), (ULLI) 0);
-
-    printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-    printf("<a xlink:href = \"%s\">\n", link);
-    printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
-    printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></a></svg>\n", TXT_X, TXT_Y);
+    if (jogada_valida(e.seleccao, e.ult_jogada[e.ult_jogador])) {
+        sprintf(link, "%s?q=%s", estado2str(e));
+        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
+        printf("<a xlink:href = \"%s\">\n", link);
+        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
+        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></a></svg>\n", TXT_X, TXT_Y);
     } else {
-    printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-    printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
-    printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></svg>\n", TXT_X, TXT_Y);
+        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
+        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
+        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></svg>\n", TXT_X, TXT_Y);
     }
 }
 
@@ -245,19 +230,19 @@ void imprime_bjogar (const ULLI mao[], const unsigned int ncartas[], const int u
 @param ult_jogada[]     Array com a ultima jogada de cada jogador
 @param seleccao         Cartas seleccionadas pelo jogador
 */
-void imprime_blimpar (const ULLI mao[], const unsigned int ncartas[], const int ult_jogador, const ULLI ult_jogada[], const ULLI seleccao)
+void imprime_blimpar (const ESTADO e)
 {
     char link[MAXLEN];
-    if (seleccao != 0) {
-    sprintf(link, "%s?q=%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%d_%llu", SCRIPT, mao[0], ult_jogada[0], ncartas[0], mao[1], ult_jogada[1], ncartas[1], mao[2], ult_jogada[2], ncartas[2], mao[3], ult_jogada[3], ncartas[3], (ult_jogador+1), (ULLI) 0);
-    printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-    printf("<a xlink:href = \"%s\">\n", link);
-    printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
-    printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></a></svg>\n", TXT_X, TXT_Y);
+    if (e.seleccao != 0) {
+        sprintf(link, "%s?q=%s", estado2str(e));
+        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
+        printf("<a xlink:href = \"%s\">\n", link);
+        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
+        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></a></svg>\n", TXT_X, TXT_Y);
     } else {
-    printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-    printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
-    printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></svg>\n", TXT_X, TXT_Y);
+        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
+        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
+        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></svg>\n", TXT_X, TXT_Y);
     }
 }
 
@@ -275,14 +260,40 @@ void imprime_blimpar (const ULLI mao[], const unsigned int ncartas[], const int 
 @param ult_jogador      O jogador anterior
 @param seleccao         As cartas seleccionadas pelo jogador
 */
-void imprime_carta (const char *path, const int x, int y, const ULLI mao[], const int naipe, const int valor, const ULLI ult_jogada[], const unsigned int ncartas[], const int ult_jogador, const ULLI seleccao)
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const int naipe, const int valor)
 {
     char script[MAXLEN];
-    if (carta_existe(seleccao, naipe, valor)) {
-    y -= YC_SEL_STEP;
-    sprintf(script, "%s?q=%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%d_%llu", SCRIPT, mao[0], ult_jogada[0], ncartas[0], mao[1], ult_jogada[1], ncartas[1], mao[2], ult_jogada[2], ncartas[2], mao[3], ult_jogada[3], ncartas[3], ult_jogador, (rem_carta(seleccao, naipe, valor)));
+    if (carta_existe(e.seleccao, naipe, valor)) {
+        y -= YC_SEL_STEP;
+        sprintf(script,
+                "%s?q="
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%d_%llu",
+                SCRIPT,
+                e.mao[0], e.ult_jogada[0], e.ncartas[0],
+                e.mao[1], e.ult_jogada[1], e.ncartas[1],
+                e.mao[2], e.ult_jogada[2], e.ncartas[2],
+                e.mao[3], e.ult_jogada[3], e.ncartas[3],
+                e.ult_jogador, (rem_carta(e.seleccao, naipe, valor))
+                );
     } else {
-    sprintf(script, "%s?q=%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%d_%llu", SCRIPT, mao[0], ult_jogada[0], ncartas[0], mao[1], ult_jogada[1], ncartas[1], mao[2], ult_jogada[2], ncartas[2], mao[3], ult_jogada[3], ncartas[3], ult_jogador, (add_carta(seleccao, naipe, valor)));
+        sprintf(script,
+                "%s?q="
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%llu+%llu+%u_"
+                "%d_%llu",
+                SCRIPT,
+                e.mao[0], e.ult_jogada[0], e.ncartas[0],
+                e.mao[1], e.ult_jogada[1], e.ncartas[1],
+                e.mao[2], e.ult_jogada[2], e.ncartas[2],
+                e.mao[3], e.ult_jogada[3], e.ncartas[3],
+                e.ult_jogador, (add_carta(e.seleccao, naipe, valor))
+                );
     }
     printf("<a xlink:href=\"%s\"><image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
 }
@@ -298,7 +309,7 @@ Esta função está a imprimir o estado em quatro linhas: uma para cada jogador
 @param ncartas[]        O numero de cartas de cada jogador
 @param seleccao         As cartas seleccionadas pelo jogador
 */
-void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const int ult_jogador, const unsigned int ncartas[], const ULLI seleccao)
+void imprime (const char *path, const e)
 {
     int n;                      /* naipe */
     int v;                      /* valor */
@@ -316,15 +327,15 @@ void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const
         for (v = 0; v < 13; v++) {
             if (carta_existe(mao[0], n, v)) {
                     xc += XC_STEP;
-                    imprime_carta(path, xc, yc, mao, n, v, ult_jogada, ncartas, ult_jogador, seleccao);
+                    imprime_carta(path, xc, yc, n, v, e);
             }
         }
     }
     printf("</svg>\n");
     /* } */
     printf("</svg>\n");
-    imprime_bjogar(mao, ncartas, ult_jogador, ult_jogada, seleccao);
-    imprime_blimpar(mao, ncartas, ult_jogador, ult_jogada, seleccao);
+    imprime_bjogar(e);
+    imprime_blimpar(e);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -333,7 +344,7 @@ void imprime (const char *path, const ULLI mao[], const ULLI ult_jogada[], const
 @param mao[]            As maos de cada jogador
 @param ncartas[]        O numero de cartas de cada jogador
 */
-void baralhar (ULLI mao[], unsigned int ncartas[])
+void baralhar (ESTADO e)
 {
     int n;      /* naipe */
     int v;      /* valor */
@@ -343,9 +354,9 @@ void baralhar (ULLI mao[], unsigned int ncartas[])
         for (v = 0; v < 13; v++) {
             do {
                 j = random() % 4;
-            } while (ncartas[j] >= 13);
-            mao[j] = add_carta(mao[j], n, v);
-            ncartas[j]++;
+            } while (e.ncartas[j] >= 13);
+            e.mao[j] = add_carta(e.mao[j], n, v);
+            e.ncartas[j]++;
         }
 }
 
@@ -360,17 +371,18 @@ Caso não seja passado nada à cgi-bin, ela assume que todas as cartas estão pr
 */
 void parse (char *query)
 {
-    ULLI mao[4] = {0};                /* comecam todas vazias */
-    ULLI ult_jogada[4] = {0};         /* comecam todas vazias */
-    ULLI seleccao = 0;                /* cartas seleccionadas pelo jogador */
-    unsigned int ncartas[4] = {0};    /* jogadores comecam com 0 cartas */
-    int ult_jogador = -1;             /* ultimo jogador */
+    ESTADO e;
+    e.mao[4] = {0};             /* comecam todas vazias */
+    e.ult_jogada[4] = {0};      /* comecam todas vazias */
+    e.seleccao = 0;             /* cartas seleccionadas pelo jogador */
+    e.ncartas[4] = {0};         /* jogadores comecam com 0 cartas */
+    e.ult_jogador = -1;         /* ultimo jogador */
 
-    if (sscanf(query, "q=%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%llu+%llu+%u_%d_%llu", &mao[0], &ult_jogada[0], &ncartas[0], &mao[1], &ult_jogada[1], &ncartas[1], &mao[2], &ult_jogada[2], &ncartas[2], &mao[3], &ult_jogada[3], &ncartas[3], &ult_jogador, &seleccao) == 1) {
-        imprime(BARALHO, mao, ult_jogada, ult_jogador, ncartas, seleccao);
+    if (e = str2estado(query))
+        imprime(BARALHO, e);
     } else {
-        baralhar(mao, ncartas);
-        imprime(BARALHO, mao, ult_jogada, ult_jogador, ncartas, seleccao);
+        baralhar(e);
+        imprime(BARALHO, e);
     }
 }
 
