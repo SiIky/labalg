@@ -113,7 +113,7 @@ char *estado2str (const ESTADO e)
 unsigned int bitsUm (MAO n)
 {
     unsigned int res;
-    for (res = 0; n > 0; res += n % 2, n >>= 1);
+    for (res = 0; n > 0; res += n % 2, n /= 10);
     return res;
 }
 
