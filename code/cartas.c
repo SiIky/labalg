@@ -97,17 +97,18 @@ ESTADO str2estado(char *str)
 
 char* estado2str (ESTADO e)
 {
+    char str[MAXLEN];
     sprintf(str,
             "%llu+%llu+%u_"
             "%llu+%llu+%u_"
             "%llu+%llu+%u_"
             "%llu+%llu+%u_"
             "%d_%llu",
-            &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
-            &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
-            &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
-            &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-            &e.ult_jogador, &e.ult_jogada;
+            e.mao[0], e.ult_jogada[0], e.ncartas[0],
+            e.mao[1], e.ult_jogada[1], e.ncartas[1],
+            e.mao[2], e.ult_jogada[2], e.ncartas[2],
+            e.mao[3], e.ult_jogada[3], e.ncartas[3],
+            e.ult_jogador, e.ult_jogada;
            );
 
     return str;
@@ -133,7 +134,7 @@ unsigned int bitsUm (MAO n)
 @param ult_jogada       A ultima jogada do ultimo jogador
 @return                 Devolve 1 se for valida, 0 caso contrario
 */
-int jogada_valida (const MAO jogada, const MAO ult_jogada)
+BOOL jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
@@ -189,7 +190,7 @@ MAO rem_seleccao (const MAO e, const MAO seleccao)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe e 0 caso contrário
 */
-int carta_existe (MAO e, const int naipe, const int valor)
+BOOL carta_existe (MAO e, const int naipe, const int valor)
 {
     int idx = INDICE(naipe, valor);
     return ((e >> idx) & 1);
