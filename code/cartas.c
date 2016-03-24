@@ -108,8 +108,7 @@ char* estado2str (ESTADO e)
             e.mao[1], e.ult_jogada[1], e.ncartas[1],
             e.mao[2], e.ult_jogada[2], e.ncartas[2],
             e.mao[3], e.ult_jogada[3], e.ncartas[3],
-            e.ult_jogador, e.ult_jogada;
-           );
+            e.ult_jogador, e.ult_jogada);
 
     return str;
 }
