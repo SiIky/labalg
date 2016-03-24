@@ -58,12 +58,9 @@
 
 #define INDICE(N, V) ((N) + ((V) * 4))
 
-typedef unsigned char BOOL;
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
-
-struct state
-{
+struct state {
     MAO mao[4];
     MAO ult_jogada[4];
     MAO seleccao;
@@ -73,8 +70,7 @@ struct state
 
 ESTADO str2estado (const char *str)
 {
-    ESTADO e;
-
+    static ESTADO e;
     sscanf(str,
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
@@ -85,9 +81,8 @@ ESTADO str2estado (const char *str)
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
         &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-        &e.ult_jogador, &e.ult_jogada
+        &e.ult_jogador, &e.seleccao
     );
-
     return e;
 }
 
@@ -104,9 +99,8 @@ char *estado2str (const ESTADO e)
         e.mao[1], e.ult_jogada[1], e.ncartas[1],
         e.mao[2], e.ult_jogada[2], e.ncartas[2],
         e.mao[3], e.ult_jogada[3], e.ncartas[3],
-        e.ult_jogador, e.ult_jogada
+        e.ult_jogador, e.seleccao
     );
-
     return str;
 }
 
@@ -256,35 +250,11 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
     char script[MAXLEN];
     if (carta_existe(e.seleccao, naipe, valor)) {
         y -= YC_SEL_STEP;
-        sprintf(script,
-                "%s?q="
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%d_%llu",
-                SCRIPT,
-                e.mao[0], e.ult_jogada[0], e.ncartas[0],
-                e.mao[1], e.ult_jogada[1], e.ncartas[1],
-                e.mao[2], e.ult_jogada[2], e.ncartas[2],
-                e.mao[3], e.ult_jogada[3], e.ncartas[3],
-                e.ult_jogador, (rem_carta(e.seleccao, naipe, valor))
-                );
+        e.seleccao = rem_carta(e.seleccao, naipe, valor);
+        sprintf(script, "%s?q=%s", SCRIPT, estado2str(e));
     } else {
-        sprintf(script,
-                "%s?q="
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%llu+%llu+%u_"
-                "%d_%llu",
-                SCRIPT,
-                e.mao[0], e.ult_jogada[0], e.ncartas[0],
-                e.mao[1], e.ult_jogada[1], e.ncartas[1],
-                e.mao[2], e.ult_jogada[2], e.ncartas[2],
-                e.mao[3], e.ult_jogada[3], e.ncartas[3],
-                e.ult_jogador, (add_carta(e.seleccao, naipe, valor))
-                );
+        e.seleccao = add_carta(e.seleccao, naipe, valor);
+        sprintf(script, "%s?q=%s", SCRIPT,estado2str(e));
     }
     printf("<a xlink:href=\"%s\"><image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
 }
