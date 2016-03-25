@@ -44,8 +44,8 @@
 /* definições do botão jogar */
 #define SVG_WIDTH 150
 #define SVG_HEIGHT 200
-#define COR_BOT_A "C99660"      /* cor dos botões ativados */
-#define COR_BOT_D "999999"      /* cor dos botões não ativados */
+#define COR_BOT_A "C99660"      /* cor dos botões activados */
+#define COR_BOT_D "999999"      /* cor dos botões não activados */
 #define RECT_X 50
 #define RECT_Y 50
 #define RECT_WIDTH 100
@@ -70,9 +70,9 @@ struct state {
 
 ESTADO str2estado (const char *str)
 {
-    static ESTADO e;
+    ESTADO e;
     sscanf(str,
-        "%llu+%llu+%u_"
+        "q=%llu+%llu+%u_"
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
@@ -189,7 +189,7 @@ int carta_existe (MAO e, const int naipe, const int valor)
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o botão Jogar
 
-@param e        O estado atual do jogo
+@param e        O estado actual do jogo
 */
 void imprime_bjogar (ESTADO e)
 {
@@ -216,7 +216,7 @@ void imprime_bjogar (ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o botão Limpar
 
-@param e        O estado atual do jogo
+@param e        O estado actual do jogo
 */
 void imprime_blimpar (ESTADO e)
 {
@@ -241,7 +241,7 @@ void imprime_blimpar (ESTADO e)
 @param path     O URL correspondente à pasta que contém todas as cartas
 @param x        A coordenada x da carta
 @param y        A coordenada y da carta
-@param e        O estado atual do jogo
+@param e        O estado actual do jogo
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 */
@@ -266,7 +266,7 @@ Esta função imprime a mão do jogador
 @param *path    O URL correspondente à pasta que contém todas as cartas
 @param e        O estado atual do jogo
 */
-void imprime (const char *path, const ESTADO e)
+void imprime (const char *path, ESTADO e)
 {
     int n;                      /* naipe */
     int v;                      /* valor */
@@ -280,14 +280,14 @@ void imprime (const char *path, const ESTADO e)
     /* printf("Jogador %d\n", j); */
     printf("<rect x=\"0\" y=\"%d\" height=\"130\" width=\"400\" style=\"fill:#%s\"/>\n", yj, COR_TABULEIRO);
     printf("<svg height = \"800\" width = \"800\">\n");
-    for (xc = XC_INIT, v = 0; v < 13; v++) {
-        for (n = 0; n < 4; n++) {
+
+    for (xc = XC_INIT, v = 0; v < 13; v++)
+        for (n = 0; n < 4; n++)
             if (carta_existe(e.mao[0], n, v)) {
                     xc += XC_STEP;
                     imprime_carta(path, xc, yc, e, n, v);
             }
-        }
-    }
+
     printf("</svg>\n");
     /* } */
     printf("</svg>\n");
@@ -298,14 +298,25 @@ void imprime (const char *path, const ESTADO e)
 /*----------------------------------------------------------------------------*/
 /** \brief Dá as cartas a cada jogador no início do jogo
 
-@param e        O estado atual do jogo
+@param e        O estado actual do jogo
 @return e       O novo estado do jogo
 */
-ESTADO baralhar (ESTADO e)
+ESTADO baralhar (void)
 {
+    static ESTADO e;   /* estado do jogo */
     int n;      /* naipe */
     int v;      /* valor */
     int j;      /* jogador */
+    int i;
+
+    e.seleccao = 0;                     /* cartas selecionadas pelo jogador */
+    e.ult_jogador = 7;                  /* último jogador */
+
+    for (i = 0; i < 4; i++) {
+        e.mao[i] = 0;                   /* começam todas vazias */
+        e.ult_jogada[i] = 0;            /* começam todas vazias */
+        e.ncartas[i] = 0;               /* jogadores começam com 0 cartas */
+    }
 
     for (n = 0; n < 4; n++)
         for (v = 0; v < 13; v++) {
@@ -329,24 +340,10 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 */
 void parse (char *query)
 {
-    int i;
-    ESTADO e;                           /* estado do jogo */
-
-    for (i = 0; i < 4; i++) {
-        e.mao[i] = 0;                   /* começam todas vazias */
-        e.ult_jogada[i] = 0;            /* começam todas vazias */
-        e.ncartas[i] = 0;               /* jogadores começam com 0 cartas */
-    }
-
-    e.seleccao = 0;                     /* cartas selecionadas pelo jogador */
-    e.ult_jogador = 7;                  /* último jogador */
-
-    if ((query != NULL) && (strlen(query) != 0)) {
-        e = str2estado(query);
-        imprime(BARALHO, e);
-    } else {
-        imprime(BARALHO, baralhar(e));
-    }
+    if ((query != NULL) && (strlen(query) != 0))
+        imprime(BARALHO, str2estado(query));
+    else
+        imprime(BARALHO, baralhar());
 }
 
 /*----------------------------------------------------------------------------*/
