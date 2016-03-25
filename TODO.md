@@ -10,4 +10,4 @@
 
 # Bugs
 - [X] Jogo crasha/congela ao clicar numa carta (prob nas funcoes imprime carta)
-- [ ] Cartas nao sao impressas depois de seleccionar uma carta
+- [X] Cartas nao sao impressas depois de seleccionar uma carta
