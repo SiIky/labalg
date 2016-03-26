@@ -142,17 +142,24 @@ unsigned int carta_valor (MAO carta, const unsigned int naipe)
 }
 
 /*----------------------------------------------------------------------------*/
-CARTA *jogada2cartas (MAO jogada, int w)
+CARTA* jogada2cartas (MAO jogada)
 {
     static CARTA cartas[6];
-    int i;
-    for (i = w = 0; jogada > 0; jogada >>= 1, i++) {
+    int i, w;
+    for (i = w = 0; jogada > 0; jogada >>= 1, i++)
         if (jogada % 2) {
             cartas[w].valor = i % 13;
             cartas[w++].naipe = carta_naipe((MAO) 1 << i);
         }
-    }
     return cartas;
+}
+
+/*----------------------------------------------------------------------------*/
+int valores_iguais (CARTA cartas[], int N)
+{
+    int i, res;
+    for (i = 1, res = 0; (i < N && (res = cartas[i].valor == cartas[i-1].valor)); i++);
+    return res;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -180,17 +187,18 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
     int res = 0;
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
+    CARTA* cartas = jogada2cartas(jogada);
+    CARTA* ult_cartas = jogada2cartas(ult_jogada);
 
-    if (ult_jogada == 0) {
+    if (ult_jogada == (MAO) 0) {
         switch (bits) {
             case PLAY_SINGLE:
                 res = 1;
                 break;
             case PLAY_PAIR:
-                /* 2 cartas de valores iguais */
-                break;
             case PLAY_TRIPLE:
-                /* 3 cartas de valores iguais */
+                /* ha algum erro aqui */
+                res = valores_iguais(cartas, bits+1);
                 break;
             case PLAY_FIVE:
                 res = 1;
@@ -205,10 +213,11 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
                 res = (jogada > ult_jogada);
                 break;
             case PLAY_PAIR:
-                /* cartas de valores iguais */
+                /* mudar isto pra funcionar nos casos em que os valores da jogada sao iguais aos da ult_jogada */
+                res = (valores_iguais(cartas, bits+1) && (ult_cartas[0].valor < cartas[0].valor || ult_cartas[1].naipe < cartas[1].naipe));
                 break;
             case PLAY_TRIPLE:
-                /* cartas de valores iguais */
+                res = (valores_iguais(cartas, bits+1) && (ult_cartas[0].valor < cartas[0].valor));
                 break;
             case PLAY_FIVE:
                 res = 1;
@@ -417,10 +426,14 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 */
 void parse (char *query)
 {
-    if ((query != NULL) && (strlen(query) != 0))
-        imprime(BARALHO, str2estado(query));
-    else
+    if ((query != NULL) && (strlen(query) != 0)) {
+        ESTADO e = str2estado(query);
+        /* (e.ult_jogador == 3) ? */
+            imprime(BARALHO, e);
+            /* bot_joga */
+    } else {
         imprime(BARALHO, baralhar());
+    }
 }
 
 /*----------------------------------------------------------------------------*/
