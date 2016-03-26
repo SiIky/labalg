@@ -68,6 +68,11 @@
 #define INDICE(N, V)            ((N) + ((V) * 4))
 #define REM_SELECCAO(E, S)      ((E) & ~(S))
 
+typedef struct card CARTA;
+struct card {
+    unsigned int naipe, valor;
+};
+
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
 struct state {
@@ -130,10 +135,24 @@ unsigned int carta_naipe (const MAO carta)
 /*----------------------------------------------------------------------------*/
 unsigned int carta_valor (MAO carta, const unsigned int naipe)
 {
-    unsigned int i;
+    unsigned int v;
     carta >>= (13 * naipe);
-    for (i = 0; carta % 2 == 0; carta >>= 1, i++);
-    return i;
+    for (v = 0; carta % 2 == 0; carta >>= 1, v++);
+    return v;
+}
+
+/*----------------------------------------------------------------------------*/
+CARTA* jogada2cartas (MAO jogada, int w)
+{
+    static CARTA cartas[6];
+    int i;
+    for (i = w = 0; jogada > 0; jogada >>= 1, i++) {
+        if (jogada % 2) {
+            cartas[w].valor = i % 13;
+            cartas[w++].naipe = carta_naipe((MAO) 1 << i);
+        }
+    }
+    return cartas;
 }
 
 /*----------------------------------------------------------------------------*/
