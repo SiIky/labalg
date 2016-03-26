@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 
+
 /* =========================================================
  * Definição das Format Strings para printf e etc
  *
@@ -57,6 +58,7 @@
 #define MAXLEN 10240
 
 #define INDICE(N, V) ((N) + ((V) * 4))
+#define REM_SELECCAO(E, S) ((E) & ~(S))
 
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
@@ -128,8 +130,10 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
-    if (bits != ult_bits) return 0;
-    return (jogada > ult_jogada);
+
+    return ((ult_bits == 0) ?
+        (bits > 0 && bits < 6 && bits != 4) :
+        ((bits == ult_bits) && (jogada > ult_jogada)));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -142,7 +146,7 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
 */
 MAO add_carta (const MAO e, const int naipe, const int valor)
 {
-    int idx = INDICE(naipe, valor);
+    unsigned int idx = INDICE(naipe, valor);
     return (e | ((MAO) 1 << idx));
 }
 
@@ -156,20 +160,8 @@ MAO add_carta (const MAO e, const int naipe, const int valor)
 */
 MAO rem_carta (const MAO e, const int naipe, const int valor)
 {
-    int idx = INDICE(naipe, valor);
+    unsigned int idx = INDICE(naipe, valor);
     return (e & ~((MAO) 1 << idx));
-}
-
-/*----------------------------------------------------------------------------*/
-/** \brief Remove as cartas selecionadas do estado
-
-@param e                Uma mão
-@param seleccao         As cartas selecionadas
-@return                 A nova mão
-*/
-MAO rem_seleccao (const MAO e, const MAO seleccao)
-{
-    return (e & ~(seleccao));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -182,7 +174,7 @@ MAO rem_seleccao (const MAO e, const MAO seleccao)
 */
 int carta_existe (MAO e, const int naipe, const int valor)
 {
-    int idx = INDICE(naipe, valor);
+    unsigned int idx = INDICE(naipe, valor);
     return ((e >> idx) & 1);
 }
 
@@ -194,10 +186,11 @@ int carta_existe (MAO e, const int naipe, const int valor)
 void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
+    unsigned int uj = e.ult_jogador % 4; /* assegura que a primeira jogada decorra direito (por ult_jogador comecar com 7) */
 
-    if (jogada_valida(e.seleccao, e.ult_jogada[e.ult_jogador])) {
+    if (jogada_valida(e.seleccao, e.ult_jogada[uj])) {
         e.ult_jogador = 0;
-        e.mao[0] = rem_seleccao(e.mao[0], e.seleccao);
+        e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
         e.seleccao = (MAO) 0;
 
@@ -266,7 +259,7 @@ Esta função imprime a mão do jogador
 @param *path    O URL correspondente à pasta que contém todas as cartas
 @param e        O estado atual do jogo
 */
-void imprime (const char *path, ESTADO e)
+void imprime (const char *path, const ESTADO e)
 {
     int n;                      /* naipe */
     int v;                      /* valor */
@@ -303,7 +296,7 @@ void imprime (const char *path, ESTADO e)
 */
 ESTADO baralhar (void)
 {
-    static ESTADO e;   /* estado do jogo */
+    ESTADO e;   /* estado do jogo */
     int n;      /* naipe */
     int v;      /* valor */
     int j;      /* jogador */
@@ -311,7 +304,6 @@ ESTADO baralhar (void)
 
     e.seleccao = 0;                     /* cartas selecionadas pelo jogador */
     e.ult_jogador = 7;                  /* último jogador */
-
     for (i = 0; i < 4; i++) {
         e.mao[i] = 0;                   /* começam todas vazias */
         e.ult_jogada[i] = 0;            /* começam todas vazias */
@@ -320,9 +312,7 @@ ESTADO baralhar (void)
 
     for (n = 0; n < 4; n++)
         for (v = 0; v < 13; v++) {
-            do {
-                j = random() % 4;
-            } while (e.ncartas[j] >= 13);
+            do j = random() % 4; while (e.ncartas[j] >= 13);
             e.mao[j] = add_carta(e.mao[j], n, v);
             e.ncartas[j]++;
         }
