@@ -119,9 +119,8 @@ unsigned int carta_naipe (MAO carta)
         return 2;
     else if (carta > PAUS)
         return 1;
-    else if (carta > OUROS)
+    else /* OUROS */
         return 0;
-    else return 4; /* erro */
 }
 
 /*----------------------------------------------------------------------------*/

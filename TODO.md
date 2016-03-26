@@ -7,7 +7,7 @@
 - [ ] Por os bots a jogar (nao interessa quem tem o 3 de Ouros pra ja, comeca sp o jogador)
     - [ ] Melhorar a funcao jogada_valida
         - [ ] Ter em conta naipes e valores das cartas
-            - [ ] Arranjar maneira de calcular o naipe e valor de uma carta dado um indice
+            - [X] Arranjar maneira de calcular o naipe e valor de uma carta dada uma carta
     - [ ] Jogadas de 1 carta
     - [ ] Jogadas de 2 cartas
     - [ ] Jogadas de 3 cartas
