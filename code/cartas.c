@@ -142,7 +142,7 @@ unsigned int carta_valor (MAO carta, const unsigned int naipe)
 }
 
 /*----------------------------------------------------------------------------*/
-CARTA* jogada2cartas (MAO jogada, int w)
+CARTA *jogada2cartas (MAO jogada, int w)
 {
     static CARTA cartas[6];
     int i;
