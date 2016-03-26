@@ -31,7 +31,6 @@
 #define ESPADAS         (((MAO) 1) << 38)
 #define COPAS           (((MAO) 1) << 25)
 #define PAUS            (((MAO) 1) << 12)
-#define OUROS           ((MAO) 0)
 
 /* Ordem das cartas */
 #define VALORES         "3456789TJQKA2"
@@ -60,6 +59,11 @@
 
 /* comprimento máximo das strings */
 #define MAXLEN          10240
+
+#define PLAY_SINGLE     1
+#define PLAY_PAIR       2
+#define PLAY_TRIPLE     3
+#define PLAY_FIVE       5
 
 #define INDICE(N, V)            ((N) + ((V) * 4))
 #define REM_SELECCAO(E, S)      ((E) & ~(S))
@@ -111,7 +115,7 @@ char *estado2str (const ESTADO e)
 }
 
 /*----------------------------------------------------------------------------*/
-unsigned int carta_naipe (MAO carta)
+unsigned int carta_naipe (const MAO carta)
 {
     if (carta > ESPADAS)
         return 3;
@@ -119,12 +123,12 @@ unsigned int carta_naipe (MAO carta)
         return 2;
     else if (carta > PAUS)
         return 1;
-    else /* OUROS */
+    else        /* OUROS */
         return 0;
 }
 
 /*----------------------------------------------------------------------------*/
-unsigned int carta_valor (MAO carta, unsigned int naipe)
+unsigned int carta_valor (MAO carta, const unsigned int naipe)
 {
     unsigned int i;
     carta >>= (13 * naipe);
@@ -154,12 +158,50 @@ unsigned int bitsUm (MAO n)
 */
 int jogada_valida (const MAO jogada, const MAO ult_jogada)
 {
+    int res = 0;
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
 
-    return ((ult_bits == 0) ?
-        (bits > 0 && bits < 6 && bits != 4) :
-        ((bits == ult_bits) && (jogada > ult_jogada)));
+    if (ult_jogada == 0) {
+        switch (bits) {
+            case PLAY_SINGLE:
+                res = 1;
+                break;
+            case PLAY_PAIR:
+                /* cartas de valores iguais */
+                break;
+            case PLAY_TRIPLE:
+                /* cartas de valores iguais */
+                break;
+            case PLAY_FIVE:
+                res = 1;
+                break;
+            default:
+                res = 0;
+                break;
+        }
+    } else if (bits == ult_bits) {
+        switch (bits) {
+            case PLAY_SINGLE:
+                res = (jogada > ult_jogada);
+                break;
+            case PLAY_PAIR:
+                /* cartas de valores iguais */
+                break;
+            case PLAY_TRIPLE:
+                /* cartas de valores iguais */
+                break;
+            case PLAY_FIVE:
+                res = 1;
+                break;
+            default:
+                res = 0;
+                break;
+        }
+    } else {
+        res = 0;
+    }
+    return res;
 }
 
 /*----------------------------------------------------------------------------*/

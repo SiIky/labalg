@@ -8,6 +8,7 @@
     - [ ] Melhorar a funcao jogada_valida
         - [ ] Ter em conta naipes e valores das cartas
             - [X] Arranjar maneira de calcular o naipe e valor de uma carta dada uma carta
+            - [ ] Dada uma jogada (de 0 ou + cartas), calcular o naipe e valor de cada uma
     - [ ] Jogadas de 1 carta
     - [ ] Jogadas de 2 cartas
     - [ ] Jogadas de 3 cartas
