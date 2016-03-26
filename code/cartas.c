@@ -28,37 +28,41 @@
 
 /* Ordem dos naipes */
 #define NAIPES          "DCHS"
+#define ESPADAS         (((MAO) 1) << 38)
+#define COPAS           (((MAO) 1) << 25)
+#define PAUS            (((MAO) 1) << 12)
+#define OUROS           ((MAO) 0)
 
 /* Ordem das cartas */
 #define VALORES         "3456789TJQKA2"
 
 /* valores usados pela função imprime */
-#define COR_TABULEIRO "116611"    /* RGB em HEX */
-#define XC_INIT 10                /* x inicial para cartas */
-#define YC_INIT 10                /* y inicial para cartas */
-#define XC_STEP 20                /* salto do x para cartas */
-#define YC_STEP 150               /* salto do y para cartas */
-#define YC_SEL_STEP 10            /* salto de cartas selecionadas */
-#define YJ_INIT 0                 /* y inicial para jogador */
-#define YJ_STEP 150               /* salto do y para jogador */
+#define COR_TABULEIRO   "116611"    /* RGB em HEX */
+#define XC_INIT         10          /* x inicial para cartas */
+#define YC_INIT         10          /* y inicial para cartas */
+#define XC_STEP         20          /* salto do x para cartas */
+#define YC_STEP         150         /* salto do y para cartas */
+#define YC_SEL_STEP     10          /* salto de cartas selecionadas */
+#define YJ_INIT         0           /* y inicial para jogador */
+#define YJ_STEP         150         /* salto do y para jogador */
 
 /* definições do botão jogar */
-#define SVG_WIDTH 150
-#define SVG_HEIGHT 200
-#define COR_BOT_A "C99660"      /* cor dos botões activados */
-#define COR_BOT_D "999999"      /* cor dos botões não activados */
-#define RECT_X 50
-#define RECT_Y 50
-#define RECT_WIDTH 100
-#define RECT_HEIGHT 50
-#define TXT_X 100
-#define TXT_Y 80
+#define SVG_WIDTH       150
+#define SVG_HEIGHT      200
+#define COR_BOT_A       "C99660"        /* cor dos botões activados */
+#define COR_BOT_D       "999999"        /* cor dos botões não activados */
+#define RECT_X          50
+#define RECT_Y          50
+#define RECT_WIDTH      100
+#define RECT_HEIGHT     50
+#define TXT_X           100
+#define TXT_Y           80
 
 /* comprimento máximo das strings */
-#define MAXLEN 10240
+#define MAXLEN          10240
 
-#define INDICE(N, V) ((N) + ((V) * 4))
-#define REM_SELECCAO(E, S) ((E) & ~(S))
+#define INDICE(N, V)            ((N) + ((V) * 4))
+#define REM_SELECCAO(E, S)      ((E) & ~(S))
 
 typedef unsigned long long int MAO;
 typedef struct state ESTADO;
@@ -73,8 +77,8 @@ struct state {
 ESTADO str2estado (const char *str)
 {
     ESTADO e;
-    sscanf(str,
-        "q=%llu+%llu+%u_"
+    sscanf(str, "q="
+        "%llu+%llu+%u_"
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
@@ -104,6 +108,29 @@ char *estado2str (const ESTADO e)
         e.ult_jogador, e.seleccao
     );
     return str;
+}
+
+/*----------------------------------------------------------------------------*/
+unsigned int carta_naipe (MAO carta)
+{
+    if (carta > ESPADAS)
+        return 3;
+    else if (carta > COPAS)
+        return 2;
+    else if (carta > PAUS)
+        return 1;
+    else if (carta > OUROS)
+        return 0;
+    else return 4; /* erro */
+}
+
+/*----------------------------------------------------------------------------*/
+unsigned int carta_valor (MAO carta, unsigned int naipe)
+{
+    unsigned int i;
+    carta >>= (13 * naipe);
+    for (i = 0; carta % 2 == 0; carta >>= 1, i++);
+    return i;
 }
 
 /*----------------------------------------------------------------------------*/
