@@ -187,10 +187,10 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
                 res = 1;
                 break;
             case PLAY_PAIR:
-                /* cartas de valores iguais */
+                /* 2 cartas de valores iguais */
                 break;
             case PLAY_TRIPLE:
-                /* cartas de valores iguais */
+                /* 3 cartas de valores iguais */
                 break;
             case PLAY_FIVE:
                 res = 1;
