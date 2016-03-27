@@ -79,24 +79,29 @@ struct state {
     MAO mao[4];
     MAO ult_jogada[4];
     MAO seleccao;
-    unsigned int ncartas[4];
-    unsigned int ult_jogador;
+    MAO ult_jogada_valida;
+    int ncartas[4];
+    int ult_jogador;
+    int ult_jogador_valido;
 };
+
+/* MAO procura_valor (ESTADO e); */
+/* MAO procura_naipe (ESTADO e); */
 
 ESTADO str2estado (const char *str)
 {
     ESTADO e;
     sscanf(str, "q="
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%u_%llu",
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%d_%llu_%llu_%d",
         &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
         &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-        &e.ult_jogador, &e.seleccao
+        &e.ult_jogador, &e.seleccao, &e.ult_jogada_valida, &e.ult_jogador_valido
     );
     return e;
 }
@@ -105,16 +110,16 @@ char *estado2str (const ESTADO e)
 {
     static char str[MAXLEN];
     sprintf(str,
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%u_%llu",
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%llu+%llu+%d_"
+        "%d_%llu_%llu_%d",
         e.mao[0], e.ult_jogada[0], e.ncartas[0],
         e.mao[1], e.ult_jogada[1], e.ncartas[1],
         e.mao[2], e.ult_jogada[2], e.ncartas[2],
         e.mao[3], e.ult_jogada[3], e.ncartas[3],
-        e.ult_jogador, e.seleccao
+        e.ult_jogador, e.seleccao, e.ult_jogada_valida, e.ult_jogador_valido
     );
     return str;
 }
@@ -399,7 +404,9 @@ ESTADO baralhar (void)
     int i;
 
     e.seleccao = 0;                     /* cartas selecionadas pelo jogador */
-    e.ult_jogador = 7;                  /* último jogador */
+    e.ult_jogador = -1;                 /* último jogador */
+    e.ult_jogador_valido = -1;          /* último jogador a jogar uma jogada valida */
+    e.ult_jogada_valida = 0;            /* Ultima jogada valida */
     for (i = 0; i < 4; i++) {
         e.mao[i] = 0;                   /* começam todas vazias */
         e.ult_jogada[i] = 0;            /* começam todas vazias */
