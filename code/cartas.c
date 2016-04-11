@@ -65,25 +65,23 @@
 #define PLAY_TRIPLE     3
 #define PLAY_FIVE       5
 
+#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))
 #define INDICE(N, V)            ((N) + ((V) * 4))
 #define REM_SELECCAO(E, S)      ((E) & ~(S))
 
-typedef struct card CARTA;
 struct card {
     unsigned int naipe, valor;
-};
+} CARTA;
 
 typedef unsigned long long int MAO;
-typedef struct state ESTADO;
-struct state {
+typedef struct state {
     MAO mao[4];
     MAO ult_jogada[4];
     MAO seleccao;
-    MAO ult_jogada_valida;
     int ncartas[4];
     int ult_jogador;
     int ult_jogador_valido;
-};
+} ESTADO ;
 
 /* MAO procura_valor (ESTADO e); */
 /* MAO procura_naipe (ESTADO e); */
@@ -179,6 +177,33 @@ unsigned int bitsUm (MAO n)
     for (count = 0; n > 0; count += n % 2, n >>= 1);
     return count;
 }
+
+/* ====================================================== */
+/*
+int jogada_single (const ESTADO *e)
+{
+    int r = 0;
+    int b = bitsUm(e->seleccao);
+    r = (b == 1) && (e->seleccao > e->ult_jogada[e->ult_jogador_valido]);
+    return r;
+}
+
+int jogada_pair (const ESTADO *e)
+{
+    int r = 0;
+    int b = bitsUm(e->seleccao);
+    if (b == 2) {
+        int ns = carta_naipe(e->seleccao);
+        int nu = carta_naipe(e->seleccao);
+        if (ns == nu)
+            // placeholder
+        else if (ns > nu)
+            r = 1;
+    }
+    return r;
+}
+*/
+/* ====================================================== */
 
 /*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma jogada é válida
