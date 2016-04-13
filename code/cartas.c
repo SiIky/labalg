@@ -9,7 +9,7 @@
  *
  *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
  *
- *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)"
+ *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)_(ult_jogador_valido)"
  *
  * =========================================================
  * Última jogada:
@@ -28,12 +28,13 @@
 
 /* Ordem dos naipes */
 #define NAIPES          "DCHS"
-#define ESPADAS         (((MAO) 1) << 38)
-#define COPAS           (((MAO) 1) << 25)
-#define PAUS            (((MAO) 1) << 12)
+#define ESPADAS         (((MAO) 1) << 3)
+#define COPAS           (((MAO) 1) << 2)
+#define PAUS            (((MAO) 1) << 1)
 
 /* Ordem das cartas */
 #define VALORES         "3456789TJQKA2"
+#define TERNOS          (((MAO) 1) << 3)
 
 /* valores usados pela função imprime */
 #define COR_TABULEIRO   "116611"    /* RGB em HEX */
@@ -65,8 +66,8 @@
 #define PLAY_TRIPLE     3
 #define PLAY_FIVE       5
 
-#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))
-#define INDICE(N, V)            ((N) + ((V) * 4))
+#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13)) /* ordenado por naipe (do stor) */
+#define INDICE(N, V)            ((N) + ((V) * 4)) /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      ((E) & ~(S))
 
 typedef struct card {
@@ -81,7 +82,7 @@ typedef struct state {
     int ncartas[4];
     int ult_jogador;
     int ult_jogador_valido;
-} ESTADO ;
+} ESTADO;
 
 /* MAO procura_valor (ESTADO e); */
 /* MAO procura_naipe (ESTADO e); */
@@ -123,25 +124,29 @@ char* estado2str (const ESTADO *e)
 }
 
 /*----------------------------------------------------------------------------*/
-unsigned int carta_naipe (const MAO carta)
+CARTA mao2carta (MAO carta)
 {
-    if (carta > ESPADAS)
-        return 3;
-    else if (carta > COPAS)
-        return 2;
-    else if (carta > PAUS)
-        return 1;
-    else        /* OUROS */
-        return 0;
-}
+    CARTA c;
+    c.naipe = 0;
+    for (c.valor = 0; carta > TERNOS; c.valor++)
+        carta >>= 4;
 
-/*----------------------------------------------------------------------------*/
-unsigned int carta_valor (MAO carta, const unsigned int naipe)
-{
-    unsigned int v;
-    carta >>= (13 * naipe);
-    for (v = 0; carta % 2 == 0; carta >>= 1, v++);
-    return v;
+    switch (carta) {
+        case ESPADAS:
+            c.naipe = 3;
+            break;
+        case COPAS:
+            c.naipe = 2;
+            break;
+        case PAUS:
+            c.naipe = 1;
+            break;
+        default: /* OUROS */
+            c.naipe = 0;
+            break;
+    }
+
+    return c;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -149,11 +154,11 @@ CARTA* jogada2cartas (MAO jogada)
 {
     static CARTA cartas[6];
     int i, w;
+    /* fazer coisas aqui */
     for (i = w = 0; jogada > 0; jogada >>= 1, i++)
-        if (jogada % 2) {
-            cartas[w].valor = i % 13;
-            cartas[w++].naipe = carta_naipe((MAO) 1 << i);
-        }
+        if (jogada % 2)
+            cartas[w++] = mao2carta((MAO) 1 << i);
+
     return cartas;
 }
 
@@ -319,16 +324,26 @@ void imprime_bjogar (ESTADO e)
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
         e.seleccao = (MAO) 0;
-
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
-        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-        printf("<a xlink:href = \"%s\">\n", link);
-        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
-        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></a></svg>\n", TXT_X, TXT_Y);
+        printf(
+            "<svg width=%d height=%d>\n"
+            "<a xlink:href = \"%s\">\n"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
+            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></a></svg>\n",
+            SVG_WIDTH, SVG_HEIGHT,
+            link,
+            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
+            TXT_X, TXT_Y
+        );
     } else {
-        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
-        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></svg>\n", TXT_X, TXT_Y);
+        printf(
+            "<svg width=%d height=%d>\n"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
+            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></svg>\n",
+            SVG_WIDTH, SVG_HEIGHT,
+            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
+            TXT_X, TXT_Y
+        );
     }
 }
 
@@ -340,17 +355,30 @@ void imprime_bjogar (ESTADO e)
 void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
+
+    printf(
+        "<svg width=%d height=%d>\n",
+        SVG_WIDTH, SVG_HEIGHT
+    );
+
     if (e.seleccao != 0) {
         e.seleccao = 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
-        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-        printf("<a xlink:href = \"%s\">\n", link);
-        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A);
-        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></a></svg>\n", TXT_X, TXT_Y);
+        printf(
+            "<a xlink:href = \"%s\">\n"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
+            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></a></svg>\n",
+            link,
+            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
+            TXT_X, TXT_Y
+        );
     } else {
-        printf("<svg width=%d height=%d>\n", SVG_WIDTH, SVG_HEIGHT);
-        printf("<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n", RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D);
-        printf("<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></svg>\n", TXT_X, TXT_Y);
+        printf(
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
+            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></svg>\n",
+            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
+            TXT_X, TXT_Y
+        );
     }
 }
 
@@ -370,12 +398,18 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
     if (carta_existe(e.seleccao, naipe, valor)) {
         y -= YC_SEL_STEP;
         e.seleccao = rem_carta(e.seleccao, naipe, valor);
-        sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     } else {
         e.seleccao = add_carta(e.seleccao, naipe, valor);
-        sprintf(script, "%s?q=%s", SCRIPT,estado2str(&e));
     }
-    printf("<a xlink:href=\"%s\"><image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n", script, x, y, path, VALORES[valor], NAIPES[naipe]);
+
+    sprintf(script, "%s?q=%s", SCRIPT,estado2str(&e));
+
+    printf(
+        "<a xlink:href=\"%s\">"
+        "<image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n",
+        script,
+        x, y, path, VALORES[valor], NAIPES[naipe]
+    );
 }
 
 /*----------------------------------------------------------------------------*/
@@ -389,17 +423,14 @@ void imprime (const char *path, const ESTADO *e)
 {
     int n;                      /* naipe */
     int v;                      /* valor */
-    /* int j; */                /* jogador */
+    int j;                      /* jogador */
     int xc = XC_INIT;           /* x inicial */
     int yc = YC_INIT;           /* y inicial */
     int yj = 0;                 /* tabuleiros dos jogadores */
 
-    printf("<svg height = \"200\" width = \"400\">\n");
-    /* for (j = 0; j < 4; yj += YC_STEP, yc += YC_STEP, j++) { */
-    /* printf("Jogador %d\n", j); */
+    printf(
+        "<svg height = \"800\" width = \"800\">\n");
     printf("<rect x=\"0\" y=\"%d\" height=\"130\" width=\"400\" style=\"fill:#%s\"/>\n", yj, COR_TABULEIRO);
-    printf("<svg height = \"800\" width = \"800\">\n");
-
     for (xc = XC_INIT, v = 0; v < 13; v++)
         for (n = 0; n < 4; n++)
             if (carta_existe(e->mao[0], n, v)) {
@@ -407,8 +438,16 @@ void imprime (const char *path, const ESTADO *e)
                     imprime_carta(path, xc, yc, *e, n, v);
             }
 
-    printf("</svg>\n");
-    /* } */
+    for (j = 0; j < 4; yj += YC_STEP, yc += YC_STEP, j++)
+        printf(
+            "\t<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
+            "\t<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">\n"
+            "Jogador %d: %d\n</text>\n",
+            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
+            TXT_X, TXT_Y,
+            j, e->ncartas[j]
+        );
+
     printf("</svg>\n");
     imprime_bjogar(*e);
     imprime_blimpar(*e);
