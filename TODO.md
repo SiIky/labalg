@@ -15,5 +15,6 @@
     - [ ] Jogadas de 5 cartas
 
 # Bugs
+- [X] 500 Internal Error (erro do apache, possivel que seja causado pelo executavel, ou entao e so o meu PC)
 - [X] Jogo crasha/congela ao clicar numa carta (prob nas funcoes imprime carta)
 - [X] Cartas nao sao impressas depois de seleccionar uma carta

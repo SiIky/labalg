@@ -1,5 +1,5 @@
 CFLAGS=-Wall -Wextra -pedantic -Wno-long-long -O2
-DFLAGS=-Wall -Wextra -pedantic -Wno-long-long
+DFLAGS=-Wall -Wextra -pedantic -Wno-long-long -g
 OBJS=$(patsubst %.c,%.o,$(wildcard *.c))
 EXEC=cartas
 DBUG=$(EXEC).dbg
@@ -9,17 +9,17 @@ CC=gcc
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS)
 
+install: cartas
+	sudo cp $(EXEC) /usr/lib/cgi-bin
+
 clean:
 	rm $(EXEC) $(DBUG) *.o *.s $(PRE)
+
+debug:
+	$(CC) $(DFLAGS) -o $(DBUG) *.c
 
 asm:
 	$(CC) $(DFLAGS) -S *.c
 
 pre:
 	$(CC) $(DFLAGS) -E -o $(PRE) *.c
-
-debug: $(OBJS)
-	$(CC) $(DFLAGS) -o $(DBUG) *.c
-
-install: cartas
-	sudo cp $(EXEC) /usr/lib/cgi-bin
