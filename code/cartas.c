@@ -104,7 +104,7 @@ ESTADO str2estado (const char *str)
     return e;
 }
 
-char *estado2str (const ESTADO *e)
+char* estado2str (const ESTADO *e)
 {
     static char str[MAXLEN];
     sprintf(str,
