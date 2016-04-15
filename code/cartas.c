@@ -8,7 +8,7 @@
  *
  *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
  *
- *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(ult_jogador)_(seleccao)_(ult_jogador_valido)"
+ *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(jogador)_(seleccao)_(ult_jogador_valido)"
  *
  * =========================================================
  * Última jogada:
@@ -79,10 +79,12 @@ typedef struct state {
     MAO ult_jogada[4];
     MAO seleccao;
     int ncartas[4];
-    int ult_jogador;
+    int jogador;
     int ult_jogador_valido;
 } ESTADO;
 
+void parse (char *query);
+void bot_joga (ESTADO *e);
 /* MAO procura_valor (ESTADO e); */
 /* MAO procura_naipe (ESTADO e); */
 
@@ -99,7 +101,7 @@ ESTADO str2estado (const char *str)
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
         &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-        &e.ult_jogador, &e.seleccao, &e.ult_jogador_valido
+        &e.jogador, &e.seleccao, &e.ult_jogador_valido
     );
     return e;
 }
@@ -117,7 +119,7 @@ char* estado2str (const ESTADO *e)
         e->mao[1], e->ult_jogada[1], e->ncartas[1],
         e->mao[2], e->ult_jogada[2], e->ncartas[2],
         e->mao[3], e->ult_jogada[3], e->ncartas[3],
-        e->ult_jogador, e->seleccao, e->ult_jogador_valido
+        e->jogador, e->seleccao, e->ult_jogador_valido
     );
     return str;
 }
@@ -176,6 +178,14 @@ int valores_iguais (CARTA cartas[])
     for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
     /* return (i == 1) ? 1 : res; */
     return 1;
+}
+
+/*----------------------------------------------------------------------------*/
+unsigned int trailingZ (MAO n)
+{
+    unsigned int count;
+    for (count = 0; n > 0 && (n % 2 == 0); count++);
+    return count;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -324,10 +334,10 @@ int carta_existe (const MAO e, const int naipe, const int valor)
 void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
-    e.ult_jogador %= 4; /* assegura que a primeira jogada decorra direito (por ult_jogador comecar com 7) */
+    e.jogador %= 4; /* assegura que a primeira jogada decorra direito (por jogador comecar com 7) */
 
-    if (jogada_valida(e.seleccao, e.ult_jogada[e.ult_jogador])) {
-        e.ult_jogador = 0;
+    if (jogada_valida(e.seleccao, e.ult_jogada[e.jogador])) {
+        e.jogador = 0;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
         e.seleccao = (MAO) 0;
@@ -464,22 +474,11 @@ void imprime (const char *path, const ESTADO *e)
 @param e        O estado actual do jogo
 @return e       O novo estado do jogo
 */
-ESTADO* baralhar (void)
+void baralhar (ESTADO *e)
 {
-    ESTADO *e = (ESTADO*) malloc(sizeof(ESTADO));   /* estado do jogo */
     int n;      /* naipe */
     int v;      /* valor */
     int j;      /* jogador */
-    int i;
-
-    e->seleccao = 0;                     /* cartas selecionadas pelo jogador */
-    e->ult_jogador = -1;                 /* último jogador */
-    e->ult_jogador_valido = -1;          /* último jogador a jogar uma jogada valida */
-    for (i = 0; i < 4; i++) {
-        e->mao[i] = 0;                   /* começam todas vazias */
-        e->ult_jogada[i] = 0;            /* começam todas vazias */
-        e->ncartas[i] = 0;               /* jogadores começam com 0 cartas */
-    }
 
     for (n = 0; n < 4; n++)
         for (v = 0; v < 13; v++) {
@@ -487,6 +486,24 @@ ESTADO* baralhar (void)
             e->mao[j] = add_carta(e->mao[j], n, v);
             e->ncartas[j]++;
         }
+    for (j = 0; j < 4 && (e->mao[j] % 2 != 1); j++);
+    e->jogador = j;
+}
+
+/*----------------------------------------------------------------------------*/
+ESTADO* initEstado (void)
+{
+    ESTADO *e = (ESTADO*) malloc(sizeof(ESTADO));   /* estado do jogo */
+    int i;
+    e->seleccao = 0;                     /* cartas selecionadas pelo jogador */
+    e->jogador = 0;                     /* jogador actual */
+    e->ult_jogador_valido = -1;          /* último jogador a jogar uma jogada valida */
+    for (i = 0; i < 4; i++) {
+        e->mao[i] = 0;                   /* começam todas vazias */
+        e->ult_jogada[i] = 0;            /* começam todas vazias */
+        e->ncartas[i] = 0;               /* jogadores começam com 0 cartas */
+    }
+    baralhar(e);
     return e;
 }
 
@@ -503,11 +520,26 @@ void parse (char *query)
 {
     if ((query != NULL) && (strlen(query) != 0)) {
         ESTADO e = str2estado(query);
-        /* (e.ult_jogador == 3) ? { */
-        imprime(BARALHO, &e);
-            /* } : { bot_joga; }; */
+        if (e.jogador == 0) {
+            imprime(BARALHO, &e);
+        } else {
+            bot_joga(&e);
+        }
     } else {
-        imprime(BARALHO, baralhar());
+        imprime(BARALHO, initEstado());
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+void bot_joga (ESTADO *e)
+{
+    if (e->jogador == e->ult_jogador_valido) {        /* pode jogar qq coisa */
+        unsigned int idx = trailingZ(e->mao[e->jogador]);    /* indice da carta mais pequena */
+        CARTA c = mao2carta((MAO) 1 << idx);
+        e->mao[e->jogador] = rem_carta(e->mao[e->jogador], c.naipe, c.valor);
+        parse(estado2str(e));
+    } else {    /* tem de jogar de acordo com a ultima jogada valida */
+        printf("fazer qq merda aqui\n");
     }
 }
 
