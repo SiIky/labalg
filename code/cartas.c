@@ -3,7 +3,6 @@
 #include <string.h>
 #include <time.h>
 
-
 /* =========================================================
  * Definição das Format Strings para printf e etc
  *
@@ -434,7 +433,7 @@ void imprime (const char *path, const ESTADO *e)
     );
     for (xc = XC_INIT, v = 0; v < 13; v++)
         for (n = 0; n < 4; n++)
-            if (carta_existe(e->mao[0], n, v)) {
+            if (carta_existe(e->mao[0], n, v)) { /* && (!carta_existe(e->seleccao, n, v)) */
                     xc += XC_STEP;
                     imprime_carta(path, xc, yc, *e, n, v);
             }
@@ -446,16 +445,6 @@ void imprime (const char *path, const ESTADO *e)
             j+1, e->ncartas[j]
         );
     printf("\t</ul>\n");
-    /*
-        printf(
-            "\n\t<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
-            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">"
-            "Jogador %d: %d</text>",
-            RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
-            TXT_X, TXT_Y,
-            j, e->ncartas[j]
-        );
-    */
 
     imprime_bjogar(*e);
     imprime_blimpar(*e);
@@ -529,10 +518,14 @@ int main (void)
     /* Cabeçalhos necessários numa CGI */
     printf(
         "Content-Type: text/html; charset=utf-8\n\n"
-        "<head><title>Big Two</title></head>\n"
+        "<!DOCTYPE html>\n"
+        "<html>\n"
+        "<head>\n"
+        "\t<title>Big Two</title>\n"
+        "\t<meta charset=\"utf-8\"/>\n"
+        "</head>\n"
         "<body>\n"
-        "<h1>Big Two</h1>\n"
-        "<svg width=\"1366\" height=\"768\">"
+        "<svg width=\"1300\" height=\"700\">"
     );
 
     /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
@@ -540,6 +533,7 @@ int main (void)
     printf(
         "</svg>\n"
         "</body>\n"
+        "</html>"
     );
 
     return 0;
