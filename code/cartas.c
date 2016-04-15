@@ -517,7 +517,7 @@ int main (void)
 
     /* Cabeçalhos necessários numa CGI */
     printf(
-        "Content-Type: text/html; charset=utf-8\n\n"
+        "data: text/html, charset=utf-8\n\n"
         "<!DOCTYPE html>\n"
         "<html>\n"
         "<head>\n"
