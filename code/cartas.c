@@ -65,9 +65,9 @@
 #define PLAY_TRIPLE     3
 #define PLAY_FIVE       5
 
-#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13)) /* ordenado por naipe (do stor) */
-#define INDICE(N, V)            ((N) + ((V) * 4)) /* ordenado por figuras (nossa) */
-#define REM_SELECCAO(E, S)      ((E) & ~(S))
+#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))      /* ordenado por naipe (do stor) */
+#define INDICE(N, V)            ((N) + ((V) * 4))       /* ordenado por figuras (nossa) */
+#define REM_SELECCAO(E, S)      ((E) & ~(S))            /* remove a seleccao de cartas de um dado estado */
 
 typedef struct card {
     unsigned int naipe, valor;
@@ -149,24 +149,33 @@ CARTA mao2carta (MAO carta)
 }
 
 /*----------------------------------------------------------------------------*/
+/** \brief Devolve uma lista de cartas (pares naipes/figuras)
+
+@param jogada   A jogada a converter
+@return         Os pares naipe/figura ordenados por figuras
+*/
 CARTA* jogada2cartas (MAO jogada)
 {
     static CARTA cartas[6];
     int i, w;
     /* fazer coisas aqui */
-    for (i = w = 0; jogada > 0; jogada >>= 1, i++)
-        if (jogada % 2)
+    for (i = w = 0; jogada > 0 && w < 6; jogada >>= 1, i++)
+        if (jogada % 2 == 1)
             cartas[w++] = mao2carta((MAO) 1 << i);
+
+    cartas[w].naipe = 20;
+    cartas[w].valor = 20;
 
     return cartas;
 }
 
 /*----------------------------------------------------------------------------*/
-int valores_iguais (CARTA cartas[], int N)
+int valores_iguais (CARTA cartas[])
 {
     int i, res;
-    for (i = 1, res = 0; (i < N && (res = cartas[i].valor == cartas[i-1].valor)); i++);
-    return res;
+    for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
+    /* return (i == 1) ? 1 : res; */
+    return 1;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -232,7 +241,7 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
             case PLAY_PAIR:
             case PLAY_TRIPLE:
                 /* ha algum erro aqui */
-                res = valores_iguais(cartas, bits+1);
+                res = valores_iguais(cartas);
                 break;
             case PLAY_FIVE:
                 res = 1;
@@ -247,11 +256,10 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
                 res = (jogada > ult_jogada);
                 break;
             case PLAY_PAIR:
-                /* mudar isto pra funcionar nos casos em que os valores da jogada sao iguais aos da ult_jogada */
-                res = (valores_iguais(cartas, bits+1) && (ult_cartas[0].valor < cartas[0].valor || ult_cartas[1].naipe < cartas[1].naipe));
+                res = (valores_iguais(cartas) && (ult_cartas[0].valor < cartas[0].valor || ult_cartas[1].naipe < cartas[1].naipe));
                 break;
             case PLAY_TRIPLE:
-                res = (valores_iguais(cartas, bits+1) && (ult_cartas[0].valor < cartas[0].valor));
+                res = (valores_iguais(cartas) && (ult_cartas[0].valor < cartas[0].valor));
                 break;
             case PLAY_FIVE:
                 res = 1;
@@ -401,7 +409,7 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
         e.seleccao = add_carta(e.seleccao, naipe, valor);
     }
 
-    sprintf(script, "%s?q=%s", SCRIPT,estado2str(&e));
+    sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
 
     printf(
         "\t<a xlink:href=\"%s\">"
@@ -493,14 +501,12 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 */
 void parse (char *query)
 {
-    /* ESTADO e; */
     if ((query != NULL) && (strlen(query) != 0)) {
         ESTADO e = str2estado(query);
         /* (e.ult_jogador == 3) ? { */
         imprime(BARALHO, &e);
             /* } : { bot_joga; }; */
     } else {
-        /* e = baralhar(); */
         imprime(BARALHO, baralhar());
     }
 }
