@@ -7,9 +7,9 @@
     - [o] Corrigir erros de PT na documentacao
 - [ ] Por os bots a jogar (nao interessa quem tem o 3 de Ouros pra ja, comeca sp o jogador)
     - [ ] Melhorar a funcao jogada_valida
-        - [o] Ter em conta naipes e valores das cartas
+        - [X] Ter em conta naipes e valores das cartas
             - [X] Arranjar maneira de calcular o naipe e valor de uma carta dada uma carta
-            - [o] Dada uma jogada (de 0 ou + cartas), calcular o naipe e valor de cada uma
+            - [X] Dada uma jogada (de 0 ou + cartas), calcular o naipe e valor de cada uma
     - [ ] Jogadas de 1 carta
     - [ ] Jogadas de 2 cartas
     - [ ] Jogadas de 3 cartas
@@ -19,3 +19,4 @@
 - [X] 500 Internal Error (erro do apache, possivel que seja causado pelo executavel, ou entao e so o meu PC)
 - [X] Jogo crasha/congela ao clicar numa carta (prob nas funcoes imprime carta)
 - [X] Cartas nao sao impressas depois de seleccionar uma carta
+- [ ] Funcao `jogada_valida` devolve falso, independentemente das cartas seleccionadas
