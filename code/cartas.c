@@ -326,10 +326,10 @@ void imprime_bjogar (ESTADO e)
         e.seleccao = (MAO) 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
-            "<svg width=%d height=%d>\n"
-            "<a xlink:href = \"%s\">\n"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
-            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></a></svg>\n",
+            "\t<svg width=%d height=%d>"
+            "<a xlink:href=\"%s\">"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
+            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Jogar</text></a></svg>\n",
             SVG_WIDTH, SVG_HEIGHT,
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
@@ -337,9 +337,9 @@ void imprime_bjogar (ESTADO e)
         );
     } else {
         printf(
-            "<svg width=%d height=%d>\n"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
-            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Jogar</text></svg>\n",
+            "\t<svg width=%d height=%d>"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
+            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Jogar</text></svg>\n",
             SVG_WIDTH, SVG_HEIGHT,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
@@ -357,7 +357,7 @@ void imprime_blimpar (ESTADO e)
     char link[MAXLEN];
 
     printf(
-        "<svg width=%d height=%d>\n",
+        "\t<svg width=%d height=%d>",
         SVG_WIDTH, SVG_HEIGHT
     );
 
@@ -365,17 +365,17 @@ void imprime_blimpar (ESTADO e)
         e.seleccao = 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
-            "<a xlink:href = \"%s\">\n"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
-            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></a></svg>\n",
+            "<a xlink:href = \"%s\">"
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
+            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Limpar</text></a></svg>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
         );
     } else {
         printf(
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
-            "<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">Limpar</text></svg>\n",
+            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
+            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Limpar</text></svg>\n",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
         );
@@ -405,8 +405,8 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
     sprintf(script, "%s?q=%s", SCRIPT,estado2str(&e));
 
     printf(
-        "<a xlink:href=\"%s\">"
-        "<image x=\"%d\" y=\"%d\" height=\"110\" width=\"80\" xlink:href=\"%s/%c%c.svg\"/></a>\n",
+        "\t<a xlink:href=\"%s\">"
+        "<image x=\"%d\" y=\"%d\" width=\"80\" height=\"110\" xlink:href=\"%s/%c%c.svg\"/></a>\n",
         script,
         x, y, path, VALORES[valor], NAIPES[naipe]
     );
@@ -429,8 +429,9 @@ void imprime (const char *path, const ESTADO *e)
     int yj = 0;                 /* tabuleiros dos jogadores */
 
     printf(
-        "<svg height = \"800\" width = \"800\">\n");
-    printf("<rect x=\"0\" y=\"%d\" height=\"130\" width=\"400\" style=\"fill:#%s\"/>\n", yj, COR_TABULEIRO);
+        "<rect x=\"0\" y=\"%d\" width=\"1366\" height=\"768\" style=\"fill:#%s\"/>\n",
+        yj, COR_TABULEIRO
+    );
     for (xc = XC_INIT, v = 0; v < 13; v++)
         for (n = 0; n < 4; n++)
             if (carta_existe(e->mao[0], n, v)) {
@@ -438,17 +439,24 @@ void imprime (const char *path, const ESTADO *e)
                     imprime_carta(path, xc, yc, *e, n, v);
             }
 
-    for (j = 0; j < 4; yj += YC_STEP, yc += YC_STEP, j++)
+    printf("\t<ul>\n");
+    for (j = 1; j < 4; yj += YC_STEP, j++)
         printf(
-            "\t<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\" />\n"
-            "\t<text x=%d y=%d text-anchor = \"midle\" text-alignt = \"center\" font-family = \"serif\" font-weight = \"bold\">\n"
-            "Jogador %d: %d\n</text>\n",
+            "\t\t<li>Jogador %d: %d cartas</li>\n",
+            j+1, e->ncartas[j]
+        );
+    printf("\t</ul>\n");
+    /*
+        printf(
+            "\n\t<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
+            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">"
+            "Jogador %d: %d</text>",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y,
             j, e->ncartas[j]
         );
+    */
 
-    printf("</svg>\n");
     imprime_bjogar(*e);
     imprime_blimpar(*e);
 }
@@ -519,14 +527,20 @@ int main (void)
     srandom(time(NULL));
 
     /* Cabeçalhos necessários numa CGI */
-    printf("Content-Type: text/html; charset=utf-8\n\n");
-    printf("<header><title>Big Two</title></header>\n");
-    printf("<body>\n");
-    printf("<h1>Big Two</h1>\n");
+    printf(
+        "Content-Type: text/html; charset=utf-8\n\n"
+        "<head><title>Big Two</title></head>\n"
+        "<body>\n"
+        "<h1>Big Two</h1>\n"
+        "<svg width=\"1366\" height=\"768\">"
+    );
 
     /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
     parse(getenv("QUERY_STRING"));
-    printf("</body>\n");
+    printf(
+        "</svg>\n"
+        "</body>\n"
+    );
 
     return 0;
 }
