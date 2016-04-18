@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "defs.h"
 
 /* =========================================================
  * Definição das Format Strings para printf e etc
@@ -19,56 +20,6 @@
  * =========================================================
 */
 
-/* URL da CGI */
-#define SCRIPT          "http://127.0.0.1/cgi-bin/cartas"
-
-/* URL da pasta com as cartas */
-#define BARALHO         "http://127.0.0.1/cards"
-
-/* Ordem dos naipes */
-#define NAIPES          "DCHS"
-#define ESPADAS         (((MAO) 1) << 3)
-#define COPAS           (((MAO) 1) << 2)
-#define PAUS            (((MAO) 1) << 1)
-
-/* Ordem das cartas */
-#define VALORES         "3456789TJQKA2"
-#define TERNOS          (((MAO) 1) << 3)
-
-/* valores usados pela função imprime */
-#define COR_TABULEIRO   "116611"    /* RGB em HEX */
-#define XC_INIT         10          /* x inicial para cartas */
-#define YC_INIT         10          /* y inicial para cartas */
-#define XC_STEP         20          /* salto do x para cartas */
-#define YC_STEP         150         /* salto do y para cartas */
-#define YC_SEL_STEP     10          /* salto de cartas selecionadas */
-#define YJ_INIT         0           /* y inicial para jogador */
-#define YJ_STEP         150         /* salto do y para jogador */
-
-/* definições do botão jogar */
-#define SVG_WIDTH       150
-#define SVG_HEIGHT      200
-#define COR_BOT_A       "C99660"        /* cor dos botões activados */
-#define COR_BOT_D       "999999"        /* cor dos botões não activados */
-#define RECT_X          50
-#define RECT_Y          50
-#define RECT_WIDTH      100
-#define RECT_HEIGHT     50
-#define TXT_X           100
-#define TXT_Y           80
-
-/* comprimento máximo das strings */
-#define MAXLEN          10240
-
-#define PLAY_SINGLE     1
-#define PLAY_PAIR       2
-#define PLAY_TRIPLE     3
-#define PLAY_FIVE       5
-
-#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))      /* ordenado por naipe (do stor) */
-#define INDICE(N, V)            ((N) + ((V) * 4))       /* ordenado por figuras (nossa) */
-#define REM_SELECCAO(E, S)      ((E) & ~(S))            /* remove a seleccao de cartas de um dado estado */
-
 typedef struct card {
     unsigned int naipe, valor;
 } CARTA;
@@ -83,10 +34,10 @@ typedef struct state {
     int ult_jogador_valido;
 } ESTADO;
 
-void parse (char *query);
-void bot_joga (ESTADO *e);
-/* MAO procura_valor (ESTADO e); */
+/* MAO procura_valor (ESTADO e) */
 /* MAO procura_naipe (ESTADO e); */
+void bot_joga (ESTADO *e);
+void parse (char *query);
 
 ESTADO str2estado (const char *str)
 {
@@ -451,7 +402,7 @@ void imprime (const char *path, const ESTADO *e)
     );
     for (xc = XC_INIT, v = 0; v < 13; v++)
         for (n = 0; n < 4; n++)
-            if (carta_existe(e->mao[0], n, v)) { /* && (!carta_existe(e->seleccao, n, v)) */
+            if (carta_existe(e->mao[0], n, v)) /* && (!carta_existe(e->seleccao, n, v)) */ {
                     xc += XC_STEP;
                     imprime_carta(path, xc, yc, *e, n, v);
             }
@@ -508,6 +459,19 @@ ESTADO* initEstado (void)
 }
 
 /*----------------------------------------------------------------------------*/
+void bot_joga (ESTADO *e)
+{
+    if (e->jogador == e->ult_jogador_valido) {        /* pode jogar qq coisa */
+        unsigned int idx = trailingZ(e->mao[e->jogador]);    /* indice da carta mais pequena */
+        CARTA c = mao2carta((MAO) 1 << idx);
+        e->mao[e->jogador] = rem_carta(e->mao[e->jogador], c.naipe, c.valor);
+        parse(estado2str(e));
+    } else {    /* tem de jogar de acordo com a ultima jogada valida */
+        printf("fazer qq merda aqui\n");
+    }
+}
+
+/*----------------------------------------------------------------------------*/
 /** \brief Trata os argumentos da CGI
 
 Esta função recebe a query que é passada à cgi-bin e trata-a.
@@ -527,19 +491,6 @@ void parse (char *query)
         }
     } else {
         imprime(BARALHO, initEstado());
-    }
-}
-
-/*----------------------------------------------------------------------------*/
-void bot_joga (ESTADO *e)
-{
-    if (e->jogador == e->ult_jogador_valido) {        /* pode jogar qq coisa */
-        unsigned int idx = trailingZ(e->mao[e->jogador]);    /* indice da carta mais pequena */
-        CARTA c = mao2carta((MAO) 1 << idx);
-        e->mao[e->jogador] = rem_carta(e->mao[e->jogador], c.naipe, c.valor);
-        parse(estado2str(e));
-    } else {    /* tem de jogar de acordo com a ultima jogada valida */
-        printf("fazer qq merda aqui\n");
     }
 }
 
