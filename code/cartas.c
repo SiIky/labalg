@@ -373,8 +373,8 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const int na
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
 
     printf(
-        "\t<a xlink:href=\"%s\">"
-        "<image x=\"%d\" y=\"%d\" width=\"80\" height=\"110\" xlink:href=\"%s/%c%c.svg\"/></a>\n",
+        "\t<svg width=\"80\" height=\"110\"> <a xlink:href=\"%s\">"
+        "<image x=\"%d\" y=\"%d\" width=\"80\" height=\"110\" xlink:href=\"%s/%c%c.svg\"/></a></svg>\n",
         script,
         x, y, path, VALORES[valor], NAIPES[naipe]
     );
@@ -396,10 +396,12 @@ void imprime (const char *path, const ESTADO *e)
     int yc = YC_INIT;           /* y inicial */
     int yj = 0;                 /* tabuleiros dos jogadores */
 
+    /*
     printf(
         "<rect x=\"0\" y=\"%d\" width=\"1366\" height=\"768\" style=\"fill:#%s\"/>\n",
         yj, COR_TABULEIRO
     );
+    */
     for (xc = XC_INIT, v = 0; v < 13; v++)
         for (n = 0; n < 4; n++)
             if (carta_existe(e->mao[0], n, v)) /* && (!carta_existe(e->seleccao, n, v)) */ {
@@ -513,14 +515,13 @@ int main (void)
         "\t<title>Big Two</title>\n"
         "\t<meta charset=\"utf-8\"/>\n"
         "</head>\n"
-        "<body>\n"
-        "<svg width=\"1300\" height=\"700\">"
+        "<body bgcolor=\"#%s\">\n",
+        COR_TABULEIRO
     );
 
     /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
     parse(getenv("QUERY_STRING"));
     printf(
-        "</svg>\n"
         "</body>\n"
         "</html>"
     );
