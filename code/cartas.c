@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "defs.h"
+#include "all.h"
 
 /* =========================================================
  * Definição das Format Strings para printf e etc
@@ -18,62 +14,7 @@
  *   != 0 -> JOGOU
  *
  * =========================================================
-*/
-
-typedef struct card {
-    unsigned int naipe, valor;
-} CARTA;
-
-typedef unsigned long long int MAO;
-typedef struct state {
-    MAO mao[4];
-    MAO ult_jogada[4];
-    MAO seleccao;
-    int ncartas[4];
-    int jogador;
-    int ult_jogador_valido;
-} ESTADO;
-
-/* MAO procura_valor (ESTADO e) */
-/* MAO procura_naipe (ESTADO e); */
-void bot_joga (ESTADO *e);
-void parse (char *query);
-
-ESTADO str2estado (const char *str)
-{
-    ESTADO e;
-    sscanf(str, "q="
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%d_%llu_%d",
-        &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
-        &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
-        &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
-        &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
-        &e.jogador, &e.seleccao, &e.ult_jogador_valido
-    );
-    return e;
-}
-
-char* estado2str (const ESTADO *e)
-{
-    static char str[MAXLEN];
-    sprintf(str,
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%d_%llu_%d",
-        e->mao[0], e->ult_jogada[0], e->ncartas[0],
-        e->mao[1], e->ult_jogada[1], e->ncartas[1],
-        e->mao[2], e->ult_jogada[2], e->ncartas[2],
-        e->mao[3], e->ult_jogada[3], e->ncartas[3],
-        e->jogador, e->seleccao, e->ult_jogador_valido
-    );
-    return str;
-}
+ */
 
 /*----------------------------------------------------------------------------*/
 CARTA mao2carta (MAO carta)
@@ -127,8 +68,7 @@ int valores_iguais (CARTA cartas[])
 {
     int i, res;
     for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
-    /* return (i == 1) ? 1 : res; */
-    return 1;
+    return (i == 1) ? 1 : res;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -151,33 +91,6 @@ unsigned int bitsUm (MAO n)
     for (count = 0; n > 0; count += n % 2, n >>= 1);
     return count;
 }
-
-/* ====================================================== */
-/*
-int jogada_single (const ESTADO *e)
-{
-    int r = 0;
-    int b = bitsUm(e->seleccao);
-    r = (b == 1) && (e->seleccao > e->ult_jogada[e->ult_jogador_valido]);
-    return r;
-}
-
-int jogada_pair (const ESTADO *e)
-{
-    int r = 0;
-    int b = bitsUm(e->seleccao);
-    if (b == 2) {
-        int ns = carta_naipe(e->seleccao);
-        int nu = carta_naipe(e->seleccao);
-        if (ns == nu)
-            // placeholder
-        else if (ns > nu)
-            r = 1;
-    }
-    return r;
-}
-*/
-/* ====================================================== */
 
 /*----------------------------------------------------------------------------*/
 /** \brief Verifica se uma jogada é válida
@@ -422,45 +335,6 @@ void imprime (const char *path, const ESTADO *e)
 }
 
 /*----------------------------------------------------------------------------*/
-/** \brief Dá as cartas a cada jogador no início do jogo
-
-@param e        O estado actual do jogo
-@return e       O novo estado do jogo
-*/
-void baralhar (ESTADO *e)
-{
-    int n;      /* naipe */
-    int v;      /* valor */
-    int j;      /* jogador */
-
-    for (n = 0; n < 4; n++)
-        for (v = 0; v < 13; v++) {
-            do j = random() % 4; while (e->ncartas[j] >= 13);
-            e->mao[j] = add_carta(e->mao[j], n, v);
-            e->ncartas[j]++;
-        }
-    for (j = 0; j < 4 && (e->mao[j] % 2 != 1); j++);
-    e->jogador = j;
-}
-
-/*----------------------------------------------------------------------------*/
-ESTADO* initEstado (void)
-{
-    ESTADO *e = (ESTADO*) malloc(sizeof(ESTADO));   /* estado do jogo */
-    int i;
-    e->seleccao = 0;                     /* cartas selecionadas pelo jogador */
-    e->jogador = 0;                     /* jogador actual */
-    e->ult_jogador_valido = -1;          /* último jogador a jogar uma jogada valida */
-    for (i = 0; i < 4; i++) {
-        e->mao[i] = 0;                   /* começam todas vazias */
-        e->ult_jogada[i] = 0;            /* começam todas vazias */
-        e->ncartas[i] = 0;               /* jogadores começam com 0 cartas */
-    }
-    baralhar(e);
-    return e;
-}
-
-/*----------------------------------------------------------------------------*/
 void bot_joga (ESTADO *e)
 {
     if (e->jogador == e->ult_jogador_valido) {        /* pode jogar qq coisa */
@@ -484,16 +358,17 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 */
 void parse (char *query)
 {
-    if ((query != NULL) && (strlen(query) != 0)) {
-        ESTADO e = str2estado(query);
-        if (e.jogador == 0) {
-            imprime(BARALHO, &e);
-        } else {
-            bot_joga(&e);
-        }
-    } else {
-        imprime(BARALHO, initEstado());
-    }
+    ESTADO e;
+
+    if ((query != NULL) && (strlen(query) != 0))
+        e = str2estado(query);
+    else
+        initEstado(&e);
+
+    if (e.jogador == 0)
+        imprime(BARALHO, &e);
+    else
+        bot_joga(&e);
 }
 
 /*----------------------------------------------------------------------------*/

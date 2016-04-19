@@ -1,3 +1,6 @@
+/* comprimento máximo das strings */
+#define MAXLEN 10240
+
 /* URL da CGI */
 #define SCRIPT          "http://127.0.0.1/cgi-bin/cartas"
 
@@ -35,9 +38,6 @@
 #define RECT_HEIGHT     50
 #define TXT_X           100
 #define TXT_Y           80
-
-/* comprimento máximo das strings */
-#define MAXLEN          10240
 
 #define PLAY_SINGLE     1
 #define PLAY_PAIR       2
