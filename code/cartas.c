@@ -1,21 +1,5 @@
 #include "all.h"
 
-/* =========================================================
- * Definição das Format Strings para printf e etc
- *
- *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
- *
- *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(jogador)_(seleccao)_(ult_jogador_valido)"
- *
- * =========================================================
- * Última jogada:
- *
- *   == 0 -> PASSOU
- *   != 0 -> JOGOU
- *
- * =========================================================
- */
-
 /*----------------------------------------------------------------------------*/
 CARTA mao2carta (MAO carta)
 {
@@ -50,10 +34,10 @@ CARTA mao2carta (MAO carta)
 */
 CARTA* jogada2cartas (MAO jogada)
 {
-    static CARTA cartas[6];
+    static CARTA cartas[5];
     int i, w;
     /* fazer coisas aqui */
-    for (i = w = 0; jogada > 0 && w < 6; jogada >>= 1, i++)
+    for (i = w = 0; jogada > 0 && w < 5; jogada >>= 1, i++)
         if (jogada % 2 == 1)
             cartas[w++] = mao2carta((MAO) 1 << i);
 
@@ -75,7 +59,7 @@ int valores_iguais (CARTA cartas[])
 unsigned int trailingZ (MAO n)
 {
     unsigned int count;
-    for (count = 0; n > 0 && (n % 2 == 0); count++);
+    for (count = 0; n > 0 && (n % 2 == 0); n >>= 1, count++);
     return count;
 }
 
@@ -199,9 +183,10 @@ void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
     e.jogador %= 4; /* assegura que a primeira jogada decorra direito (por jogador comecar com 7) */
+    unsigned int ult_jogador = (e.jogador + 3) % 4;
 
-    if (jogada_valida(e.seleccao, e.ult_jogada[e.jogador])) {
-        e.jogador = 0;
+    if (jogada_valida(e.seleccao, e.ult_jogada[ult_jogador])) {
+        e.jogador = (e.jogador + 1) % 4;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
         e.seleccao = (MAO) 0;
@@ -236,7 +221,6 @@ void imprime_bjogar (ESTADO e)
 void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
-
     printf(
         "\t<svg width=%d height=%d>",
         SVG_WIDTH, SVG_HEIGHT
@@ -273,23 +257,22 @@ void imprime_blimpar (ESTADO e)
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 */
-void imprime_carta (const char *path, const int x, int y, ESTADO e, const int naipe, const int valor)
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const CARTA c)
 {
     char script[MAXLEN];
-    if (carta_existe(e.seleccao, naipe, valor)) {
+    if (carta_existe(e.seleccao, c.naipe, c.valor)) {
         y -= YC_SEL_STEP;
-        e.seleccao = rem_carta(e.seleccao, naipe, valor);
+        e.seleccao = rem_carta(e.seleccao, c.naipe, c.valor);
     } else {
-        e.seleccao = add_carta(e.seleccao, naipe, valor);
+        e.seleccao = add_carta(e.seleccao, c.naipe, c.valor);
     }
 
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
-
     printf(
-        "\t<svg width=\"80\" height=\"110\"> <a xlink:href=\"%s\">"
+        "\t<svg width=\"90\" height=\"120\"><a xlink:href=\"%s\">"
         "<image x=\"%d\" y=\"%d\" width=\"80\" height=\"110\" xlink:href=\"%s/%c%c.svg\"/></a></svg>\n",
         script,
-        x, y, path, VALORES[valor], NAIPES[naipe]
+        x, y, path, VALORES[c.valor], NAIPES[c.naipe]
     );
 }
 
@@ -302,25 +285,20 @@ Esta função imprime a mão do jogador
 */
 void imprime (const char *path, const ESTADO *e)
 {
-    int n;                      /* naipe */
-    int v;                      /* valor */
     int j;                      /* jogador */
     int xc = XC_INIT;           /* x inicial */
     int yc = YC_INIT;           /* y inicial */
     int yj = 0;                 /* tabuleiros dos jogadores */
+    int i;
+    CARTA c;
+    MAO mao;
 
-    /*
-    printf(
-        "<rect x=\"0\" y=\"%d\" width=\"1366\" height=\"768\" style=\"fill:#%s\"/>\n",
-        yj, COR_TABULEIRO
-    );
-    */
-    for (xc = XC_INIT, v = 0; v < 13; v++)
-        for (n = 0; n < 4; n++)
-            if (carta_existe(e->mao[0], n, v)) /* && (!carta_existe(e->seleccao, n, v)) */ {
-                    xc += XC_STEP;
-                    imprime_carta(path, xc, yc, *e, n, v);
-            }
+    for (i = 0, mao = e->mao[0]; mao > 0; mao >>= 1, i++) {
+        if (mao & (MAO) 1) {
+            c = mao2carta((MAO) 1 << i);
+            imprime_carta(path, xc, yc, *e, c);
+        }
+    }
 
     printf("\t<ul>\n");
     for (j = 1; j < 4; yj += YC_STEP, j++)
@@ -337,10 +315,9 @@ void imprime (const char *path, const ESTADO *e)
 /*----------------------------------------------------------------------------*/
 void bot_joga (ESTADO *e)
 {
-    if (e->jogador == e->ult_jogador_valido) {        /* pode jogar qq coisa */
-        unsigned int idx = trailingZ(e->mao[e->jogador]);    /* indice da carta mais pequena */
-        CARTA c = mao2carta((MAO) 1 << idx);
-        e->mao[e->jogador] = rem_carta(e->mao[e->jogador], c.naipe, c.valor);
+    if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
+        unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
+        e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
         parse(estado2str(e));
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
         printf("fazer qq merda aqui\n");

@@ -1,3 +1,19 @@
+/* =========================================================
+ * Definição das Format Strings para printf e etc
+ *
+ *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
+ *
+ *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(jogador)_(seleccao)_(ult_jogador_valido)"
+ *
+ * =========================================================
+ * Última jogada:
+ *
+ *   == 0 -> PASSOU
+ *   != 0 -> JOGOU
+ *
+ * =========================================================
+ */
+
 typedef struct card {
     unsigned int naipe, valor;
 } CARTA;
@@ -7,9 +23,9 @@ typedef struct state {
     MAO mao[4];
     MAO ult_jogada[4];
     MAO seleccao;
-    int ncartas[4];
-    int jogador;
-    int ult_jogador_valido;
+    unsigned int ncartas[4];
+    unsigned int jogador;
+    unsigned int ult_jogador_valido;
 } ESTADO;
 
 /*============================================================================*/
@@ -26,7 +42,7 @@ MAO rem_carta (const MAO e, const int naipe, const int valor);
 int carta_existe (const MAO e, const int naipe, const int valor);
 void imprime_bjogar (ESTADO e);
 void imprime_blimpar (ESTADO e);
-void imprime_carta (const char *path, const int x, int y, ESTADO e, const int naipe, const int valor);
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const CARTA c);
 void imprime (const char *path, const ESTADO *e);
 /*============================================================================*/
 
@@ -35,11 +51,11 @@ ESTADO str2estado (const char *str)
 {
     ESTADO e;
     sscanf(str, "q="
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%d_%llu_%d",
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%u_%llu_%u",
         &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
@@ -54,11 +70,11 @@ char* estado2str (const ESTADO *e)
 {
     static char str[MAXLEN];
     sprintf(str,
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%llu+%llu+%d_"
-        "%d_%llu_%d",
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%llu+%llu+%u_"
+        "%u_%llu_%u",
         e->mao[0], e->ult_jogada[0], e->ncartas[0],
         e->mao[1], e->ult_jogada[1], e->ncartas[1],
         e->mao[2], e->ult_jogada[2], e->ncartas[2],
