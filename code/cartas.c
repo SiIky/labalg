@@ -7,22 +7,8 @@ CARTA mao2carta (MAO carta)
     c.naipe = 0;
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
-
-    switch (carta) {
-        case ESPADAS:
-            c.naipe = 3;
-            break;
-        case COPAS:
-            c.naipe = 2;
-            break;
-        case PAUS:
-            c.naipe = 1;
-            break;
-        default: /* OUROS */
-            c.naipe = 0;
-            break;
-    }
-
+    for (c.naipe = 0; (carta ^ 1); carta >>= 1)
+        c.naipe++;
     return c;
 }
 
@@ -59,7 +45,7 @@ int valores_iguais (CARTA cartas[])
 unsigned int trailingZ (MAO n)
 {
     unsigned int count;
-    for (count = 0; n > 0 && (n % 2 == 0); n >>= 1, count++);
+    for (count = 0; n > 0 && (n ^ 1); n >>= 1, count++);
     return count;
 }
 
@@ -83,15 +69,17 @@ unsigned int bitsUm (MAO n)
 @param ult_jogada       A última jogada do último jogador
 @return                 Devolve 1 se for válida, 0 caso contrário
 */
-int jogada_valida (const MAO jogada, const MAO ult_jogada)
+int jogada_valida (const ESTADO *e)
 {
     int res = 0;
-    unsigned int bits = bitsUm(jogada);
-    unsigned int ult_bits = bitsUm(ult_jogada);
+    MAO jogada = e->seleccao;
+    MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
     CARTA* cartas = jogada2cartas(jogada);
     CARTA* ult_cartas = jogada2cartas(ult_jogada);
+    unsigned int bits = bitsUm(jogada);
+    unsigned int ult_bits = bitsUm(ult_jogada);
 
-    if (ult_jogada == (MAO) 0) {
+    if (e->jogador == e->ult_jogador_valido) { /* pode jogar qq coisa */
         switch (bits) {
             case PLAY_SINGLE:
                 res = 1;
@@ -108,7 +96,7 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
                 res = 0;
                 break;
         }
-    } else if (bits == ult_bits) {
+    } else if (bits == ult_bits) { /* tem de jogar de acordo com a ult jogada valida */
         switch (bits) {
             case PLAY_SINGLE:
                 res = (jogada > ult_jogada);
@@ -140,9 +128,8 @@ int jogada_valida (const MAO jogada, const MAO ult_jogada)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         A nova mão
 */
-MAO add_carta (const MAO e, const int naipe, const int valor)
+MAO add_carta (const MAO e, const unsigned int idx)
 {
-    unsigned int idx = INDICE(naipe, valor);
     return (e | ((MAO) 1 << idx));
 }
 
@@ -154,9 +141,8 @@ MAO add_carta (const MAO e, const int naipe, const int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         A nova mão
 */
-MAO rem_carta (const MAO e, const int naipe, const int valor)
+MAO rem_carta (const MAO e, const unsigned int idx)
 {
-    unsigned int idx = INDICE(naipe, valor);
     return (e & ~((MAO) 1 << idx));
 }
 
@@ -168,10 +154,9 @@ MAO rem_carta (const MAO e, const int naipe, const int valor)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe, 0 caso contrário
 */
-int carta_existe (const MAO e, const int naipe, const int valor)
+int carta_existe (const MAO e, const unsigned int idx)
 {
-    unsigned int idx = INDICE(naipe, valor);
-    return ((e >> idx) & 1);
+    return (e & ((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -182,10 +167,8 @@ int carta_existe (const MAO e, const int naipe, const int valor)
 void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
-    e.jogador %= 4; /* assegura que a primeira jogada decorra direito (por jogador comecar com 7) */
-    unsigned int ult_jogador = (e.jogador + 3) % 4;
 
-    if (jogada_valida(e.seleccao, e.ult_jogada[ult_jogador])) {
+    if (jogada_valida(&e)) {
         e.jogador = (e.jogador + 1) % 4;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
@@ -257,14 +240,15 @@ void imprime_blimpar (ESTADO e)
 @param naipe    O naipe da carta (inteiro entre 0 e 3)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 */
-void imprime_carta (const char *path, const int x, int y, ESTADO e, const CARTA c)
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx)
 {
+    CARTA c = mao2carta((MAO) 1 << idx);
     char script[MAXLEN];
-    if (carta_existe(e.seleccao, c.naipe, c.valor)) {
+    if (carta_existe(e.seleccao, idx)) {
         y -= YC_SEL_STEP;
-        e.seleccao = rem_carta(e.seleccao, c.naipe, c.valor);
+        e.seleccao = rem_carta(e.seleccao, idx);
     } else {
-        e.seleccao = add_carta(e.seleccao, c.naipe, c.valor);
+        e.seleccao = add_carta(e.seleccao, idx);
     }
 
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
@@ -290,16 +274,13 @@ void imprime (const char *path, const ESTADO *e)
     int yc = YC_INIT;           /* y inicial */
     int yj = 0;                 /* tabuleiros dos jogadores */
     int i;
-    CARTA c;
-    MAO mao;
+    MAO mao = e->mao[0];
 
     /* imprime a mao do jogador e os botoes */
-    for (i = 0, mao = e->mao[0]; mao > 0; mao >>= 1, i++) {
+    for (i = 0; mao > 0; mao >>= 1, i++)
         if (mao & (MAO) 1) {
-            c = mao2carta((MAO) 1 << i);
-            imprime_carta(path, xc, yc, *e, c);
+            imprime_carta(path, xc, yc, *e, i);
         }
-    }
     imprime_bjogar(*e);
     imprime_blimpar(*e);
 

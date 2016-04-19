@@ -36,13 +36,13 @@ CARTA* jogada2cartas (MAO jogada);
 int valores_iguais (CARTA cartas[]);
 unsigned int trailingZ (MAO n);
 unsigned int bitsUm (MAO n);
-int jogada_valida (const MAO jogada, const MAO ult_jogada);
-MAO add_carta (const MAO e, const int naipe, const int valor);
-MAO rem_carta (const MAO e, const int naipe, const int valor);
-int carta_existe (const MAO e, const int naipe, const int valor);
+int jogada_valida (const ESTADO *e);
+MAO add_carta (const MAO e, const unsigned int idx);
+int carta_existe (const MAO e, const unsigned int idx);
+MAO rem_carta (const MAO e, const unsigned int idx);
 void imprime_bjogar (ESTADO e);
 void imprime_blimpar (ESTADO e);
-void imprime_carta (const char *path, const int x, int y, ESTADO e, const CARTA c);
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx);
 void imprime (const char *path, const ESTADO *e);
 /*============================================================================*/
 
@@ -92,31 +92,27 @@ char* estado2str (const ESTADO *e)
 */
 void baralhar (ESTADO *e)
 {
-    int n;      /* naipe */
-    int v;      /* valor */
     int j;      /* jogador */
+    int i;
 
-    for (n = 0; n < 4; n++)
-        for (v = 0; v < 13; v++) {
-            do j = random() % 4; while (e->ncartas[j] >= 13);
-            e->mao[j] = add_carta(e->mao[j], n, v);
-            e->ncartas[j]++;
-        }
-    for (j = 0; j < 4 && (e->mao[j] % 2 != 1); j++);
-    e->jogador = j;
+    for (i = 0; i < 52; i++) {
+        do j = random() % 4; while (e->ncartas[j] >= 13);
+        e->mao[j] = add_carta(e->mao[j], i);
+        e->ncartas[j]++;
+    }
 }
 
 /*----------------------------------------------------------------------------*/
 void initEstado (ESTADO *e)
 {
     int i;
-    e->seleccao = 0;                     /* cartas selecionadas pelo jogador */
-    e->jogador = 0;                      /* jogador actual */
-    e->ult_jogador_valido = -1;          /* último jogador a jogar uma jogada valida */
+    e->seleccao = (MAO) 0;                     /* cartas selecionadas pelo jogador */
     for (i = 0; i < 4; i++) {
-        e->mao[i] = 0;                   /* começam todas vazias */
-        e->ult_jogada[i] = 0;            /* começam todas vazias */
-        e->ncartas[i] = 0;               /* jogadores começam com 0 cartas */
+        e->mao[i] = (MAO) 0;                   /* começam todas vazias */
+        e->ult_jogada[i] = (MAO) 0;            /* começam todas vazias */
+        e->ncartas[i] = 0;                     /* jogadores começam com 0 cartas */
     }
     baralhar(e);
+    for (i = 0; i < 4 && (e->mao[i] % 2 == 0); i++);
+    e->ult_jogador_valido = e->jogador = i;
 }

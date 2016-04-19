@@ -1,5 +1,5 @@
 /* comprimento máximo das strings */
-#define MAXLEN 10240
+#define MAXLEN          10240
 
 /* URL da CGI */
 #define SCRIPT          "http://127.0.0.1/cgi-bin/cartas"
@@ -27,18 +27,19 @@
 #define YJ_INIT         0           /* y inicial para jogador */
 #define YJ_STEP         150         /* salto do y para jogador */
 
-/* definições do botão jogar */
+/* definições dos botoes */
 #define SVG_WIDTH       150
 #define SVG_HEIGHT      200
 #define COR_BOT_A       "C99660"        /* cor dos botões activados */
 #define COR_BOT_D       "999999"        /* cor dos botões não activados */
-#define RECT_X          50
-#define RECT_Y          50
-#define RECT_WIDTH      100
-#define RECT_HEIGHT     50
-#define TXT_X           100
-#define TXT_Y           80
+#define RECT_X          50              /* posicao dos botoes */
+#define RECT_Y          50              /* posicao dos botoes */
+#define RECT_WIDTH      100             /* largura dos botoes */
+#define RECT_HEIGHT     50              /* altura dos botoes */
+#define TXT_X           70              /* posicao do texto nos botoes */
+#define TXT_Y           80              /* posicao do texto nos botoes */
 
+/* funcao `jogada_valida` */
 #define PLAY_SINGLE     1
 #define PLAY_PAIR       2
 #define PLAY_TRIPLE     3
