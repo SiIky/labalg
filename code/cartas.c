@@ -293,13 +293,17 @@ void imprime (const char *path, const ESTADO *e)
     CARTA c;
     MAO mao;
 
+    /* imprime a mao do jogador e os botoes */
     for (i = 0, mao = e->mao[0]; mao > 0; mao >>= 1, i++) {
         if (mao & (MAO) 1) {
             c = mao2carta((MAO) 1 << i);
             imprime_carta(path, xc, yc, *e, c);
         }
     }
+    imprime_bjogar(*e);
+    imprime_blimpar(*e);
 
+    /* imprime o numero de cartas dos bots */
     printf("\t<ul>\n");
     for (j = 1; j < 4; yj += YC_STEP, j++)
         printf(
@@ -307,9 +311,6 @@ void imprime (const char *path, const ESTADO *e)
             j+1, e->ncartas[j]
         );
     printf("\t</ul>\n");
-
-    imprime_bjogar(*e);
-    imprime_blimpar(*e);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -336,7 +337,6 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 void parse (char *query)
 {
     ESTADO e;
-
     if ((query != NULL) && (strlen(query) != 0))
         e = str2estado(query);
     else
@@ -357,9 +357,7 @@ a função que vai imprimir o código html para desenhar as cartas
 int main (void)
 {
     srandom(time(NULL));
-
-    /* Cabeçalhos necessários numa CGI */
-    printf(
+    printf(     /* Cabeçalhos necessários numa CGI */
         "data: text/html, charset=utf-8\n\n"
         "<!DOCTYPE html>\n"
         "<html>\n"
@@ -370,13 +368,14 @@ int main (void)
         "<body bgcolor=\"#%s\">\n",
         COR_TABULEIRO
     );
-
-    /* Ler os valores passados à cgi que estão na variável ambiente e passá-los ao programa */
+    /*
+     * Ler os valores passados à cgi que estão na 
+     * variável ambiente e passá-los ao programa
+     */
     parse(getenv("QUERY_STRING"));
     printf(
         "</body>\n"
         "</html>"
     );
-
     return 0;
 }
