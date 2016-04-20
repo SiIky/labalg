@@ -230,6 +230,23 @@ void imprime_blimpar (ESTADO e)
     }
 }
 
+void imprime_ult_jogada (const char *path, const ESTADO *e)
+{
+    int j;                      /* jogador */
+    int xc = XUC_INIT;          /* x inicial */
+    int yc = YC_INIT;           /* y inicial */
+    int yj = 0;                 /* tabuleiros dos jogadores */
+    int i;
+    MAO ult_jogada[4];
+    for (i = 0; i < 4; i++)
+        ult_jogada[i] = e->ult_jogada[i];
+
+    for (j = 0; j < 4; yj += YJ_STEP, j++)
+        for (i = 0; ult_jogada[j] > 0; ult_jogada[j] >>= 1, i++)
+            if (ult_jogada[j] & (MAO) 1)
+                imprime_carta(path, xc, yc, *e, i);
+}
+
 /*----------------------------------------------------------------------------*/
 /** \brief Imprime o html correspondente a uma carta
 
@@ -290,6 +307,7 @@ void imprime (const char *path, const ESTADO *e)
             "\t\t<P>Jogador %d: %d cartas</P>\n",
             j+1, e->ncartas[j]
         );
+    imprime_ult_jogada(path, e);
 }
 
 /*----------------------------------------------------------------------------*/

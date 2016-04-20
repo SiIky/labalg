@@ -43,6 +43,7 @@ MAO rem_carta (const MAO e, const unsigned int idx);
 void imprime_bjogar (ESTADO e);
 void imprime_blimpar (ESTADO e);
 void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx);
+void imprime_ult_jogada (const char *path, const ESTADO *e);
 void imprime (const char *path, const ESTADO *e);
 /*============================================================================*/
 

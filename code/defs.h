@@ -24,6 +24,7 @@
 #define XC_STEP         20          /* salto do x para cartas */
 #define YC_STEP         150         /* salto do y para cartas */
 #define YC_SEL_STEP     10          /* salto de cartas selecionadas */
+#define XUC_INIT        (XC_INIT + (13 * XC_STEP))
 #define YJ_INIT         0           /* y inicial para jogador */
 #define YJ_STEP         150         /* salto do y para jogador */
 
