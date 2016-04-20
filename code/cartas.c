@@ -215,7 +215,7 @@ void imprime_blimpar (ESTADO e)
         printf(
             "<A XLINK:HREF=\"%s\">"
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
-            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></A></SVG>\n",
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></A></SVG>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
