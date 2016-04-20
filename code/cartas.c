@@ -154,9 +154,9 @@ MAO rem_carta (const MAO e, const unsigned int idx)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         1 se a carta existe, 0 caso contrário
 */
-int carta_existe (const MAO e, const unsigned int idx)
+int carta_existe (MAO e, const unsigned int idx)
 {
-    return (e & ((MAO) 1 << idx));
+    return ((e >> idx) & ((MAO) 1));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -175,10 +175,10 @@ void imprime_bjogar (ESTADO e)
         e.seleccao = (MAO) 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
-            "\t<svg width=%d height=%d>"
-            "<a xlink:href=\"%s\">"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
-            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Jogar</text></a></svg>\n",
+            "\t<SVG WIDTH=%d HEIGHT=%d>"
+            "<A XLINK:HREF=\"%s\">"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></A></SVG>\n",
             SVG_WIDTH, SVG_HEIGHT,
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
@@ -186,9 +186,9 @@ void imprime_bjogar (ESTADO e)
         );
     } else {
         printf(
-            "\t<svg width=%d height=%d>"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
-            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Jogar</text></svg>\n",
+            "\t<SVG WIDTH=%d HEIGHT=%d>"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></SVG>\n",
             SVG_WIDTH, SVG_HEIGHT,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
@@ -205,7 +205,7 @@ void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
     printf(
-        "\t<svg width=%d height=%d>",
+        "\t<SVG WIDTH=%d HEIGHT=%d>",
         SVG_WIDTH, SVG_HEIGHT
     );
 
@@ -213,17 +213,17 @@ void imprime_blimpar (ESTADO e)
         e.seleccao = 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
-            "<a xlink:href = \"%s\">"
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
-            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Limpar</text></a></svg>\n",
+            "<A XLINK:HREF=\"%s\">"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></A></SVG>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
         );
     } else {
         printf(
-            "<rect x=%d y=%d width=%d height=%d ry=5 style=\"fill:#%s\"/>"
-            "<text x=%d y=%d text-anchor=\"midle\" text-alignt=\"center\" font-family=\"serif\" font-weight=\"bold\">Limpar</text></svg>\n",
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></SVG>\n",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
         );
@@ -242,8 +242,6 @@ void imprime_blimpar (ESTADO e)
 */
 void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx)
 {
-    CARTA c = mao2carta((MAO) 1 << idx);
-    char script[MAXLEN];
     if (carta_existe(e.seleccao, idx)) {
         y -= YC_SEL_STEP;
         e.seleccao = rem_carta(e.seleccao, idx);
@@ -251,10 +249,12 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsign
         e.seleccao = add_carta(e.seleccao, idx);
     }
 
+    CARTA c = mao2carta((MAO) 1 << idx);
+    char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
-        "\t<svg width=\"90\" height=\"120\"><a xlink:href=\"%s\">"
-        "<image x=\"%d\" y=\"%d\" width=\"80\" height=\"110\" xlink:href=\"%s/%c%c.svg\"/></a></svg>\n",
+        "\t<SVG WIDTH=\"90\" HEIGHT=\"120\"><A XLINK:HREF=\"%s\">"
+        "<IMAGE X=\"%d\" Y=\"%d\" WIDTH=\"80\" HEIGHT=\"110\" XLINK:HREF=\"%s/%c%c.svg\"/></A></SVG>\n",
         script,
         x, y, path, VALORES[c.valor], NAIPES[c.naipe]
     );
@@ -285,13 +285,11 @@ void imprime (const char *path, const ESTADO *e)
     imprime_blimpar(*e);
 
     /* imprime o numero de cartas dos bots */
-    printf("\t<ul>\n");
     for (j = 1; j < 4; yj += YC_STEP, j++)
         printf(
-            "\t\t<li>Jogador %d: %d cartas</li>\n",
+            "\t\t<P>Jogador %d: %d cartas</P>\n",
             j+1, e->ncartas[j]
         );
-    printf("\t</ul>\n");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -340,13 +338,13 @@ int main (void)
     srandom(time(NULL));
     printf(     /* Cabeçalhos necessários numa CGI */
         "data: text/html, charset=utf-8\n\n"
-        "<!DOCTYPE html>\n"
-        "<html>\n"
-        "<head>\n"
-        "\t<title>Big Two</title>\n"
-        "\t<meta charset=\"utf-8\"/>\n"
-        "</head>\n"
-        "<body bgcolor=\"#%s\">\n",
+        "<!DOCTYPE HTML>\n"
+        "<HTML>\n"
+        "<HEAD>\n"
+        "\t<TITLE>Big Two</TITLE>\n"
+        "\t<META CHARSET=\"utf-8\"/>\n"
+        "</HEAD>\n"
+        "<BODY BGCOLOR=\"#%s\">\n",
         COR_TABULEIRO
     );
     /*
@@ -355,8 +353,8 @@ int main (void)
      */
     parse(getenv("QUERY_STRING"));
     printf(
-        "</body>\n"
-        "</html>"
+        "</BODY>\n"
+        "</HTML>"
     );
     return 0;
 }

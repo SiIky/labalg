@@ -38,7 +38,7 @@ unsigned int trailingZ (MAO n);
 unsigned int bitsUm (MAO n);
 int jogada_valida (const ESTADO *e);
 MAO add_carta (const MAO e, const unsigned int idx);
-int carta_existe (const MAO e, const unsigned int idx);
+int carta_existe (MAO e, const unsigned int idx);
 MAO rem_carta (const MAO e, const unsigned int idx);
 void imprime_bjogar (ESTADO e);
 void imprime_blimpar (ESTADO e);
