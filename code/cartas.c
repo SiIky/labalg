@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "defs.h"
+#include "cartas.h"
 #include "structs.h"
 
 /*----------------------------------------------------------------------------*/
@@ -135,7 +135,7 @@ int jogada_valida (const ESTADO *e)
 */
 MAO add_carta (const MAO *e, const unsigned int idx)
 {
-    return (&e | ((MAO) 1 << idx));
+    return (*e | ((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -148,7 +148,7 @@ MAO add_carta (const MAO *e, const unsigned int idx)
 */
 MAO rem_carta (const MAO *e, const unsigned int idx)
 {
-    return (&e & ~((MAO) 1 << idx));
+    return (*e & ~((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
