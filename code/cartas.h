@@ -18,7 +18,7 @@
 #define TERNOS          (((MAO) 1) << 3)
 
 /* valores usados pela função imprime */
-#define COR_TABULEIRO   "116611"    /* RGB em HEX */
+#define COR_TABULEIRO   "#116611"    /* RGB em HEX */
 #define XC_INIT         10          /* x inicial para cartas */
 #define YC_INIT         10          /* y inicial para cartas */
 #define XC_STEP         20          /* salto do x para cartas */
@@ -31,8 +31,8 @@
 /* definições dos botoes */
 #define SVG_WIDTH       150
 #define SVG_HEIGHT      200
-#define COR_BOT_A       "C99660"        /* cor dos botões activados */
-#define COR_BOT_D       "999999"        /* cor dos botões não activados */
+#define COR_BOT_A       "#C99660"        /* cor dos botões activados */
+#define COR_BOT_D       "#999999"        /* cor dos botões não activados */
 #define RECT_X          50              /* posicao dos botoes */
 #define RECT_Y          50              /* posicao dos botoes */
 #define RECT_WIDTH      100             /* largura dos botoes */

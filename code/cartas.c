@@ -9,7 +9,6 @@
 CARTA mao2carta (MAO carta)
 {
     CARTA c;
-    c.naipe = 0;
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
     for (c.naipe = 0; (carta ^ 1); carta >>= 1)
@@ -182,7 +181,7 @@ void imprime_bjogar (ESTADO e)
         printf(
             "\t<SVG WIDTH=%d HEIGHT=%d>"
             "<A XLINK:HREF=\"%s\">"
-            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></A></SVG>\n",
             SVG_WIDTH, SVG_HEIGHT,
             link,
@@ -192,7 +191,7 @@ void imprime_bjogar (ESTADO e)
     } else {
         printf(
             "\t<SVG WIDTH=%d HEIGHT=%d>"
-            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></SVG>\n",
             SVG_WIDTH, SVG_HEIGHT,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
@@ -219,7 +218,7 @@ void imprime_blimpar (ESTADO e)
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
             "<A XLINK:HREF=\"%s\">"
-            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></A></SVG>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
@@ -227,7 +226,7 @@ void imprime_blimpar (ESTADO e)
         );
     } else {
         printf(
-            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:#%s\"/>"
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></SVG>\n",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
@@ -367,7 +366,7 @@ int main (void)
         "\t<TITLE>Big Two</TITLE>\n"
         "\t<META CHARSET=\"utf-8\"/>\n"
         "</HEAD>\n"
-        "<BODY BGCOLOR=\"#%s\">\n",
+        "<BODY BGCOLOR=\"%s\">\n",
         COR_TABULEIRO
     );
     /*
