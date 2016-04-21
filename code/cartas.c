@@ -1,4 +1,9 @@
-#include "all.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "defs.h"
+#include "structs.h"
 
 /*----------------------------------------------------------------------------*/
 CARTA mao2carta (MAO carta)
@@ -128,9 +133,9 @@ int jogada_valida (const ESTADO *e)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         A nova mão
 */
-MAO add_carta (const MAO e, const unsigned int idx)
+MAO add_carta (const MAO *e, const unsigned int idx)
 {
-    return (e | ((MAO) 1 << idx));
+    return (&e | ((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -141,9 +146,9 @@ MAO add_carta (const MAO e, const unsigned int idx)
 @param valor    O valor da carta (inteiro entre 0 e 12)
 @return         A nova mão
 */
-MAO rem_carta (const MAO e, const unsigned int idx)
+MAO rem_carta (const MAO *e, const unsigned int idx)
 {
-    return (e & ~((MAO) 1 << idx));
+    return (&e & ~((MAO) 1 << idx));
 }
 
 /*----------------------------------------------------------------------------*/
@@ -261,17 +266,17 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsign
 {
     if (carta_existe(e.seleccao, idx)) {
         y -= YC_SEL_STEP;
-        e.seleccao = rem_carta(e.seleccao, idx);
+        e.seleccao = rem_carta(&e.seleccao, idx);
     } else {
-        e.seleccao = add_carta(e.seleccao, idx);
+        e.seleccao = add_carta(&e.seleccao, idx);
     }
 
     CARTA c = mao2carta((MAO) 1 << idx);
     char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
-        "\t<SVG WIDTH=\"90\" HEIGHT=\"120\"><A XLINK:HREF=\"%s\">"
-        "<IMAGE X=\"%d\" Y=\"%d\" WIDTH=\"80\" HEIGHT=\"110\" XLINK:HREF=\"%s/%c%c.svg\"/></A></SVG>\n",
+        "\t<SVG WIDTH=90 HEIGHT=120><A XLINK:HREF=\"%s\">"
+        "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A></SVG>\n",
         script,
         x, y, path, VALORES[c.valor], NAIPES[c.naipe]
     );

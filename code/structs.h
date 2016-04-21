@@ -28,7 +28,7 @@ typedef struct state {
     unsigned int ult_jogador_valido;
 } ESTADO;
 
-/*============================================================================*/
+/*==================================================================*/
 void bot_joga (ESTADO *e);
 void parse (char *query);
 CARTA mao2carta (MAO carta);
@@ -37,17 +37,18 @@ int valores_iguais (CARTA cartas[]);
 unsigned int trailingZ (MAO n);
 unsigned int bitsUm (MAO n);
 int jogada_valida (const ESTADO *e);
-MAO add_carta (const MAO e, const unsigned int idx);
 int carta_existe (MAO e, const unsigned int idx);
-MAO rem_carta (const MAO e, const unsigned int idx);
+MAO add_carta (const MAO *e, const unsigned int idx);
+MAO rem_carta (const MAO *e, const unsigned int idx);
 void imprime_bjogar (ESTADO e);
 void imprime_blimpar (ESTADO e);
 void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx);
 void imprime_ult_jogada (const char *path, const ESTADO *e);
 void imprime (const char *path, const ESTADO *e);
-/*============================================================================*/
+/*==================================================================*/
 
 /*----------------------------------------------------------------------------*/
+/*==================================================================*/
 ESTADO str2estado (const char *str)
 {
     ESTADO e;
@@ -66,7 +67,7 @@ ESTADO str2estado (const char *str)
     return e;
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 char* estado2str (const ESTADO *e)
 {
     static char str[MAXLEN];
@@ -85,7 +86,7 @@ char* estado2str (const ESTADO *e)
     return str;
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Dá as cartas a cada jogador no início do jogo
 
 @param e        O estado actual do jogo
@@ -98,12 +99,12 @@ void baralhar (ESTADO *e)
 
     for (i = 0; i < 52; i++) {
         do j = random() % 4; while (e->ncartas[j] >= 13);
-        e->mao[j] = add_carta(e->mao[j], i);
+        e->mao[j] = add_carta(&e->mao[j], i);
         e->ncartas[j]++;
     }
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 void initEstado (ESTADO *e)
 {
     int i;
