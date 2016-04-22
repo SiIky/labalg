@@ -172,6 +172,10 @@ void imprime_bjogar (ESTADO e)
 {
     char link[MAXLEN];
 
+    printf(
+        "\t<SVG WIDTH=100 HEIGHT=50 "
+        "style=\"position:absolute; top:400px; left:800px\">\n"
+    );
     if (jogada_valida(&e)) {
         e.jogador = (e.jogador + 1) % 4;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
@@ -179,21 +183,17 @@ void imprime_bjogar (ESTADO e)
         e.seleccao = (MAO) 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
-            "\t<SVG WIDTH=%d HEIGHT=%d>"
             "<A XLINK:HREF=\"%s\">"
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></A></SVG>\n",
-            SVG_WIDTH, SVG_HEIGHT,
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
         );
     } else {
         printf(
-            "\t<SVG WIDTH=%d HEIGHT=%d>"
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
             "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></SVG>\n",
-            SVG_WIDTH, SVG_HEIGHT,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
         );
@@ -209,10 +209,9 @@ void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
     printf(
-        "\t<SVG WIDTH=%d HEIGHT=%d>",
-        SVG_WIDTH, SVG_HEIGHT
+        "\t<SVG WIDTH=100 HEIGHT=50 "
+        "style=\"position:absolute; top:400px; left:950px\">\n"
     );
-
     if (e.seleccao != 0) {
         e.seleccao = 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
@@ -242,7 +241,7 @@ void imprime_ult_jogada (const char *path, const ESTADO *e)
     int yj = 0;                 /* tabuleiros dos jogadores */
     int i;
     MAO ult_jogada[4];
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)     /* guarda o array ult_jogada */
         ult_jogada[i] = e->ult_jogada[i];
 
     for (j = 0; j < 4; yj += YJ_STEP, j++)
@@ -274,8 +273,8 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsign
     char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
-        "\t<SVG WIDTH=90 HEIGHT=120><A XLINK:HREF=\"%s\">"
-        "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A></SVG>\n",
+        "\t<A XLINK:HREF=\"%s\">"
+        "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A>\n",
         script,
         x, y, path, VALORES[c.valor], NAIPES[c.naipe]
     );
@@ -293,24 +292,44 @@ void imprime (const char *path, const ESTADO *e)
     int j;                      /* jogador */
     int xc = XC_INIT;           /* x inicial */
     int yc = YC_INIT;           /* y inicial */
-    int yj = 0;                 /* tabuleiros dos jogadores */
+    int yj = YJ_INIT;           /* tabuleiros dos jogadores */
     int i;
     MAO mao = e->mao[0];
 
-    /* imprime a mao do jogador e os botoes */
+    /* -------------- bloco das cartas ------------------ */
+    /* -------------------------------------------------- */
+    printf( /* opening SVG tag */
+        "<SVG WIDTH=440 HEIGHT=120 "
+        "style=\"position:absolute; top:400px; left:110px\">\n"
+    );
+    /* imprime a mao do jogador */
     for (i = 0; mao > 0; mao >>= 1, i++)
         if (mao & (MAO) 1) {
             imprime_carta(path, xc, yc, *e, i);
+            xc += XC_STEP;
         }
+    printf("</SVG>\n");         /* closing SVG tag */
+    /* -------------------------------------------------- */
+
     imprime_bjogar(*e);
     imprime_blimpar(*e);
 
     /* imprime o numero de cartas dos bots */
-    for (j = 1; j < 4; yj += YC_STEP, j++)
+    printf(
+        "<TABLE BORDER=\"4px\" BORDERCOLOR=\"Black\" "
+        "STYLE=\"BACKGROUND-COLOR: YELLOW\">\n"
+        "<TR>\n"
+        "\t<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
+        "</TR>\n"
+    );
+    for (j = 0; j < 4; yj += YJ_STEP, j++)
         printf(
-            "\t\t<P>Jogador %d: %d cartas</P>\n",
+            "<TR>\n"
+            "\t<TD>%d</TD><TD>%d</TD><TD>0</TD>\n"
+            "</TR>\n",
             j+1, e->ncartas[j]
         );
+    printf("</TABLE>\n");
     imprime_ult_jogada(path, e);
 }
 

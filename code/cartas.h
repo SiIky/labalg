@@ -19,26 +19,25 @@
 
 /* valores usados pela função imprime */
 #define COR_TABULEIRO   "#116611"    /* RGB em HEX */
-#define XC_INIT         10          /* x inicial para cartas */
+#define XC_INIT         0            /* x inicial para cartas */
 #define YC_INIT         10          /* y inicial para cartas */
-#define XC_STEP         20          /* salto do x para cartas */
-#define YC_STEP         150         /* salto do y para cartas */
-#define YC_SEL_STEP     10          /* salto de cartas selecionadas */
-#define XUC_INIT        (XC_INIT + (13 * XC_STEP))
-#define YJ_INIT         0           /* y inicial para jogador */
-#define YJ_STEP         150         /* salto do y para jogador */
+#define XC_STEP         30           /* salto do x para cartas */
+#define YC_SEL_STEP     10           /* salto de cartas selecionadas */
+#define XUC_INIT        (13 * XC_STEP)
+#define YJ_INIT         0            /* y inicial para jogador */
+#define YJ_STEP         150          /* salto do y para jogador */
 
 /* definições dos botoes */
 #define SVG_WIDTH       150
 #define SVG_HEIGHT      200
 #define COR_BOT_A       "#C99660"        /* cor dos botões activados */
 #define COR_BOT_D       "#999999"        /* cor dos botões não activados */
-#define RECT_X          50              /* posicao dos botoes */
-#define RECT_Y          50              /* posicao dos botoes */
-#define RECT_WIDTH      100             /* largura dos botoes */
-#define RECT_HEIGHT     50              /* altura dos botoes */
-#define TXT_X           70              /* posicao do texto nos botoes */
-#define TXT_Y           80              /* posicao do texto nos botoes */
+#define RECT_X          0                /* posicao dos botoes */
+#define RECT_Y          0                /* posicao dos botoes */
+#define RECT_WIDTH      100              /* largura dos botoes */
+#define RECT_HEIGHT     50               /* altura dos botoes */
+#define TXT_X           20               /* posicao do texto nos botoes */
+#define TXT_Y           30               /* posicao do texto nos botoes */
 
 /* funcao `jogada_valida` */
 #define PLAY_SINGLE     1
