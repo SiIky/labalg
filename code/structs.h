@@ -22,56 +22,63 @@
  *      e[n][v] = 0     =>      (e & ~((MAO) 1 << INDICE(N, V)))
  *      e[n][v] = 1     =>      (e |  ((MAO) 1 << INDICE(N, V)))
  * =========================================================
+ *          | 0123456789ABC | DEF
+ *       ---|---------------|-----|----------
+ *        0 | ............. | ... | Diamonds
+ *        1 | ............. | ... | Clubs
+ *        2 | ............. | ... | Heart
+ *        3 | ............. | ... | Spades
+ *       ---|---------------|-----|----------
+ *          | 34567891JQKA2 |
+ *                   0
  */
 
 /* comprimento máximo das strings */
 #define MAXLEN          10240
-#define TERNOS          (((MAO) 1) << 3)
+#define TERNOS          ((MAO) 1 << 3)
 
-#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))      /* ordenado por naipe (do stor) */
-#define INDICE(N, V)            ((N) + ((V) * 4))       /* ordenado por figuras (nossa) */
-#define REM_SELECCAO(E, S)      ((E) & ~(S))            /* remove a seleccao de cartas de um dado estado */
+#define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
+#define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
+#define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
 
 /* valor de uma matriz/estado E na posicao/indice I */
-#define VALMX(E,I)      ((E) & ((MAO) 1 << I))
+#define CARTA_EXISTE(E, I)      (E & ((MAO) 1 << I))
 
 /* Escreve N (0 ou 1) na posicao/indice I da matriz/estado E */
-#define ESCMX(E,I,N)    ((N) == 0) ? \
-                        (rem_carta((E), (I))) : \
-                        (add_carta((E), (I));
+#define ESCMX(E,I,N)    (N == 0) ? \
+                        (rem_carta(E, I)) : \
+                        (add_carta(E, I));
 
-typedef struct card {
+typedef struct {
     unsigned int naipe, valor;
-} CARTA;
+} Card;
 
 typedef unsigned long long int MAO;
-typedef struct state {
+typedef struct {
     MAO mao[4];
     MAO ult_jogada[4];
     MAO seleccao;
     unsigned int ncartas[4];
     unsigned int jogador;
     unsigned int ult_jogador_valido;
-} ESTADO;
+} State;
 
-/*================== headers do structs.c ==========================*/
 /*==================================================================*/
-MAO add_carta (const MAO *e, const unsigned int idx);
-MAO rem_carta (const MAO *e, const unsigned int idx);
-int carta_existe (MAO e, const unsigned int idx);
-CARTA mao2carta (MAO carta);
-CARTA* jogada2cartas (MAO jogada);
-ESTADO str2estado (const char *str);
-char* estado2str (const ESTADO *e);
-void baralhar (ESTADO *e);
-void initEstado (ESTADO *e);
+MAO     add_carta       (const MAO *e, const unsigned int idx);
+MAO     rem_carta       (const MAO *e, const unsigned int idx);
+int     carta_existe    (const MAO e, const unsigned int idx);
+Card    mao2carta       (MAO carta);
+Card*   jogada2cartas   (MAO jogada);
+State   str2estado      (const char *str);
+char*   estado2str      (const State *e);
+void    baralhar        (State *e);
+void    initEstado      (State *e);
 
 /*==================================================================*/
 /** \brief Adiciona uma carta ao estado
 
 @param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
+@param idx      O indice da carta (inteiro entre 0 e 51)
 @return         A nova mão
 */
 MAO add_carta (const MAO *e, const unsigned int idx)
@@ -83,8 +90,7 @@ MAO add_carta (const MAO *e, const unsigned int idx)
 /** \brief Remove uma carta do estado
 
 @param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
+@param idx      O indice da carta (inteiro entre 0 e 51)
 @return         A nova mão
 */
 MAO rem_carta (const MAO *e, const unsigned int idx)
@@ -96,22 +102,23 @@ MAO rem_carta (const MAO *e, const unsigned int idx)
 /** \brief Verifica se uma carta pertence ao estado
 
 @param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
+@param idx      O indice da carta (inteiro entre 0 e 51)
 @return         1 se a carta existe, 0 caso contrário
 */
-int carta_existe (MAO e, const unsigned int idx)
+int carta_existe (const MAO e, const unsigned int idx)
 {
-    return ((e >> idx) & ((MAO) 1));
+    return (e & ((MAO) 1 << idx));
+    /* return ((e >> idx) & ((MAO) 1)); */
 }
 
 /*==================================================================*/
-CARTA mao2carta (MAO carta)
+Card mao2carta (MAO carta)
 {
-    CARTA c;
+    Card c;
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
-    for (c.naipe = 0; (carta ^ 1); carta >>= 1)
+    for (c.naipe = 0; !(CARTA_EXISTE(carta, 0)); carta >>= 1)
+    /* for (c.naipe = 0; (carta ^ 1); carta >>= 1) */
         c.naipe++;
     return c;
 }
@@ -122,12 +129,12 @@ CARTA mao2carta (MAO carta)
 @param jogada   A jogada a converter
 @return         Os pares naipe/figura ordenados por figuras
 */
-CARTA* jogada2cartas (MAO jogada)
+Card* jogada2cartas (MAO jogada)
 {
-    static CARTA cartas[5];
+    static Card cartas[13];
     int i, w;
     /* fazer coisas aqui */
-    for (i = w = 0; jogada > 0 && w < 5; jogada >>= 1, i++)
+    for (i = w = 0; i < 52 && w < 13; jogada >>= 1, i++)
         if (jogada % 2 == 1)
             cartas[w++] = mao2carta((MAO) 1 << i);
 
@@ -138,9 +145,9 @@ CARTA* jogada2cartas (MAO jogada)
 }
 
 /*==================================================================*/
-ESTADO str2estado (const char *str)
+State str2estado (const char *str)
 {
-    ESTADO e;
+    State e;
     sscanf(str, "q="
         "%llu+%llu+%u_"
         "%llu+%llu+%u_"
@@ -157,7 +164,7 @@ ESTADO str2estado (const char *str)
 }
 
 /*==================================================================*/
-char* estado2str (const ESTADO *e)
+char* estado2str (const State *e)
 {
     static char str[MAXLEN];
     sprintf(str,
@@ -181,7 +188,7 @@ char* estado2str (const ESTADO *e)
 @param e        O estado actual do jogo
 @return e       O novo estado do jogo
 */
-void baralhar (ESTADO *e)
+void baralhar (State *e)
 {
     int j;      /* jogador */
     int i;
@@ -194,7 +201,7 @@ void baralhar (ESTADO *e)
 }
 
 /*==================================================================*/
-void initEstado (ESTADO *e)
+void initEstado (State *e)
 {
     int i;
     e->seleccao = (MAO) 0;                     /* cartas selecionadas pelo jogador */

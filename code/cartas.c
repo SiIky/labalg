@@ -6,7 +6,7 @@
 #include "cartas.h"
 
 /*==================================================================*/
-int valores_iguais (CARTA cartas[])
+int valores_iguais (Card cartas[])
 {
     int i, res;
     for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
@@ -41,13 +41,13 @@ unsigned int bitsUm (MAO n)
 @param ult_jogada       A última jogada do último jogador
 @return                 Devolve 1 se for válida, 0 caso contrário
 */
-int jogada_valida (const ESTADO *e)
+int jogada_valida (const State *e)
 {
     int res = 0;
     MAO jogada = e->seleccao;
     MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
-    CARTA* cartas = jogada2cartas(jogada);
-    CARTA* ult_cartas = jogada2cartas(ult_jogada);
+    Card* cartas = jogada2cartas(jogada);
+    Card* ult_cartas = jogada2cartas(ult_jogada);
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
 
@@ -97,16 +97,18 @@ int jogada_valida (const ESTADO *e)
 
 @param e        O estado actual do jogo
 */
-void imprime_bjogar (ESTADO e)
+void imprime_bjogar (State e)
 {
     char link[MAXLEN];
 
     printf(
-        "<SVG WIDTH=100 HEIGHT=50 "
-        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:800px\">"
+        "<SVG WIDTH=%d HEIGHT=%d "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:200px\">",
+        RECT_WIDTH, RECT_HEIGHT
     );
     if (jogada_valida(&e)) {
         e.jogador = (e.jogador + 1) % 4;
+        e.ult_jogador_valido = 0;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
         e.seleccao = (MAO) 0;
@@ -134,12 +136,13 @@ void imprime_bjogar (ESTADO e)
 
 @param e        O estado actual do jogo
 */
-void imprime_blimpar (ESTADO e)
+void imprime_blimpar (State e)
 {
     char link[MAXLEN];
     printf(
-        "<SVG WIDTH=100 HEIGHT=50 "
-        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:950px\">"
+        "<SVG WIDTH=%d HEIGHT=%d "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:325px\">",
+        RECT_WIDTH, RECT_HEIGHT
     );
     if (e.seleccao != 0) {
         e.seleccao = 0;
@@ -163,50 +166,62 @@ void imprime_blimpar (ESTADO e)
 }
 
 /*==================================================================*/
-void imprime_ult_jogada (const char *path, const ESTADO *e)
+void imprime_ult_jogada (const State *e)
 {
     int j;                      /* jogador */
-    int xc = XUC_INIT;          /* x inicial */
-    int yc = YC_INIT;           /* y inicial */
-    int yj = 0;                 /* tabuleiros dos jogadores */
-    int i;
+    int xc;                     /* x inicial */
+    int yj;                     /* y inicial */
+    int i;                      /* indice da carta a imprimir */
     MAO ult_jogada[4];
+    Card c;
+
     for (i = 0; i < 4; i++)     /* guarda o array ult_jogada */
         ult_jogada[i] = e->ult_jogada[i];
 
-    for (j = 0; j < 4; yj += YJ_STEP, j++)
-        for (i = 0; ult_jogada[j] > 0; ult_jogada[j] >>= 1, i++)
-            if (ult_jogada[j] & (MAO) 1)
-                imprime_carta(path, xc, yc, *e, i);
+    printf( /* opening SVG tag */
+        "<SVG WIDTH=%d HEIGHT=%d "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:10px; LEFT:600px\">\n",
+        SVG_WIDTH, 4 * SVG_HEIGHT
+    );
+
+    for (yj = YJ_INIT, j = 0; j < 4; yj += YJ_STEP, j++)
+        for (xc = XUC_INIT, i = 0; i < 52; ult_jogada[j] >>= 1, i++)
+            if (ult_jogada[j] & (MAO) 1) {
+                c = mao2carta((MAO) 1 << i);
+                printf(
+                    "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A>\n",
+                    xc, yj, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
+                );
+                xc += XC_STEP;
+            }
+    printf("</SVG>\n");
 }
 
 /*==================================================================*/
 /** \brief Imprime o html correspondente a uma carta
 
-@param path     O URL correspondente à pasta que contém todas as cartas
 @param x        A coordenada x da carta
 @param y        A coordenada y da carta
 @param e        O estado actual do jogo
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
+@param idx      O valor da carta (inteiro entre 0 e 51)
 */
-void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx)
+void imprime_carta (const int x, int y, State e, const unsigned int idx)
 {
-    if (carta_existe(e.seleccao, idx)) {
+    if (CARTA_EXISTE(e.seleccao, idx)) {
         y -= YC_SEL_STEP;
         e.seleccao = rem_carta(&e.seleccao, idx);
     } else {
         e.seleccao = add_carta(&e.seleccao, idx);
     }
 
-    CARTA c = mao2carta((MAO) 1 << idx);
+    Card c = mao2carta((MAO) 1 << idx);
     char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
         "\t<A XLINK:HREF=\"%s\">"
         "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A>\n",
         script,
-        x, y, path, VALORES[c.valor], NAIPES[c.naipe]
+        x, y, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
     );
 }
 
@@ -214,10 +229,9 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsign
 /** \brief Imprime o estado do jogo
 
 Esta função imprime a mão do jogador
-@param *path    O URL correspondente à pasta que contém todas as cartas
 @param e        O estado atual do jogo
 */
-void imprime (const char *path, const ESTADO *e)
+void imprime (const State *e)
 {
     int j;                      /* jogador */
     int xc = XC_INIT;           /* x inicial */
@@ -230,21 +244,18 @@ void imprime (const char *path, const ESTADO *e)
     /* -------------------------------------------------- */
     printf( /* opening SVG tag */
         "<SVG WIDTH=440 HEIGHT=120 "
-        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:110px\">\n"
+        "STYLE=\"POSITION:ABSOLUTE; TOP:200px; LEFT:100px\">\n"
     );
     /* imprime a mao do jogador */
     for (i = 0; mao > 0; mao >>= 1, i++)
         if (mao & (MAO) 1) {
-            imprime_carta(path, xc, yc, *e, i);
+            imprime_carta(xc, yc, *e, i);
             xc += XC_STEP;
         }
     printf("</SVG>\n");         /* closing SVG tag */
     /* -------------------------------------------------- */
 
-    imprime_bjogar(*e);
-    imprime_blimpar(*e);
-
-    /* imprime o numero de cartas dos bots */
+    /* imprime a tabela de info sobre o jogo */
     printf(
         "<TABLE BORDER=\"4px\" BORDERCOLOR=\"BLACK\" "
         "STYLE=\"BACKGROUND-COLOR: YELLOW\">\n"
@@ -254,24 +265,24 @@ void imprime (const char *path, const ESTADO *e)
     );
     for (j = 0; j < 4; yj += YJ_STEP, j++)
         printf(
-            "<TR>"
-            "<TD>%d</TD><TD>%d</TD><TD>0</TD>"
-            "</TR>\n",
+            "<TR><TD>%d</TD><TD>%d</TD><TD>0</TD></TR>\n",
             j+1, e->ncartas[j]
         );
     printf("</TABLE>\n");
-    imprime_ult_jogada(path, e);
+    imprime_ult_jogada(e);
+    imprime_bjogar(*e);
+    imprime_blimpar(*e);
 }
 
 /*==================================================================*/
-void bot_joga (ESTADO *e)
+void bot_joga (State *e)
 {
     if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
         unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
         e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
-        parse(estado2str(e));
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
-        printf("fazer qq merda aqui\n");
+        /* printf("fazer qq merda aqui\n"); */
+        e->jogador = (e->jogador + 3) % 4;
     }
 }
 
@@ -286,16 +297,16 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 */
 void parse (char *query)
 {
-    ESTADO e;
+    State e;
     if ((query != NULL) && (strlen(query) != 0))
         e = str2estado(query);
     else
         initEstado(&e);
 
-    if (e.jogador == 0)
-        imprime(BARALHO, &e);
-    else
+    for (; e.jogador != 0;)
         bot_joga(&e);
+
+    imprime(&e);
 }
 
 /*==================================================================*/
