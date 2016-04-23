@@ -1,21 +1,12 @@
-/* comprimento máximo das strings */
-#define MAXLEN          10240
-
 /* URL da CGI */
-#define SCRIPT          "http://127.0.0.1/cgi-bin/cartas"
+#define SCRIPT          "http://127.0.0.1/cgi-bin/bigtwo"
 
 /* URL da pasta com as cartas */
 #define BARALHO         "http://127.0.0.1/cards"
 
-/* Ordem dos naipes */
+/* ordem dos naipes e valores */
 #define NAIPES          "DCHS"
-#define ESPADAS         (((MAO) 1) << 3)
-#define COPAS           (((MAO) 1) << 2)
-#define PAUS            (((MAO) 1) << 1)
-
-/* Ordem das cartas */
 #define VALORES         "3456789TJQKA2"
-#define TERNOS          (((MAO) 1) << 3)
 
 /* valores usados pela função imprime */
 #define COR_TABULEIRO   "#116611"    /* RGB em HEX */
@@ -45,6 +36,21 @@
 #define PLAY_TRIPLE     3
 #define PLAY_FIVE       5
 
-#define INDICE_NAIPE(N, V)      ((V) + ((N) * 13))      /* ordenado por naipe (do stor) */
-#define INDICE(N, V)            ((N) + ((V) * 4))       /* ordenado por figuras (nossa) */
-#define REM_SELECCAO(E, S)      ((E) & ~(S))            /* remove a seleccao de cartas de um dado estado */
+/*================== headers do cartas.c ===========================*/
+/*==================================================================*/
+void bot_joga (ESTADO *e);
+void parse (char *query);
+CARTA mao2carta (MAO carta);
+CARTA* jogada2cartas (MAO jogada);
+int valores_iguais (CARTA cartas[]);
+unsigned int trailingZ (MAO n);
+unsigned int bitsUm (MAO n);
+int jogada_valida (const ESTADO *e);
+int carta_existe (MAO e, const unsigned int idx);
+MAO add_carta (const MAO *e, const unsigned int idx);
+MAO rem_carta (const MAO *e, const unsigned int idx);
+void imprime_bjogar (ESTADO e);
+void imprime_blimpar (ESTADO e);
+void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsigned int idx);
+void imprime_ult_jogada (const char *path, const ESTADO *e);
+void imprime (const char *path, const ESTADO *e);

@@ -2,42 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "cartas.h"
 #include "structs.h"
+#include "cartas.h"
 
-/*----------------------------------------------------------------------------*/
-CARTA mao2carta (MAO carta)
-{
-    CARTA c;
-    for (c.valor = 0; carta > TERNOS; c.valor++)
-        carta >>= 4;
-    for (c.naipe = 0; (carta ^ 1); carta >>= 1)
-        c.naipe++;
-    return c;
-}
-
-/*----------------------------------------------------------------------------*/
-/** \brief Devolve uma lista de cartas (pares naipes/figuras)
-
-@param jogada   A jogada a converter
-@return         Os pares naipe/figura ordenados por figuras
-*/
-CARTA* jogada2cartas (MAO jogada)
-{
-    static CARTA cartas[5];
-    int i, w;
-    /* fazer coisas aqui */
-    for (i = w = 0; jogada > 0 && w < 5; jogada >>= 1, i++)
-        if (jogada % 2 == 1)
-            cartas[w++] = mao2carta((MAO) 1 << i);
-
-    cartas[w].naipe = 20;
-    cartas[w].valor = 20;
-
-    return cartas;
-}
-
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 int valores_iguais (CARTA cartas[])
 {
     int i, res;
@@ -45,7 +13,7 @@ int valores_iguais (CARTA cartas[])
     return (i == 1) ? 1 : res;
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 unsigned int trailingZ (MAO n)
 {
     unsigned int count;
@@ -53,7 +21,7 @@ unsigned int trailingZ (MAO n)
     return count;
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Devolve o número de bits a 1
 
 @param n        Número a calcular
@@ -66,7 +34,7 @@ unsigned int bitsUm (MAO n)
     return count;
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Verifica se uma jogada é válida
 
 @param jogada           As cartas selecionadas
@@ -124,46 +92,7 @@ int jogada_valida (const ESTADO *e)
     return res;
 }
 
-/*----------------------------------------------------------------------------*/
-/** \brief Adiciona uma carta ao estado
-
-@param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
-@return         A nova mão
-*/
-MAO add_carta (const MAO *e, const unsigned int idx)
-{
-    return (*e | ((MAO) 1 << idx));
-}
-
-/*----------------------------------------------------------------------------*/
-/** \brief Remove uma carta do estado
-
-@param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
-@return         A nova mão
-*/
-MAO rem_carta (const MAO *e, const unsigned int idx)
-{
-    return (*e & ~((MAO) 1 << idx));
-}
-
-/*----------------------------------------------------------------------------*/
-/** \brief Verifica se uma carta pertence ao estado
-
-@param e        Uma mão
-@param naipe    O naipe da carta (inteiro entre 0 e 3)
-@param valor    O valor da carta (inteiro entre 0 e 12)
-@return         1 se a carta existe, 0 caso contrário
-*/
-int carta_existe (MAO e, const unsigned int idx)
-{
-    return ((e >> idx) & ((MAO) 1));
-}
-
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Imprime o botão Jogar
 
 @param e        O estado actual do jogo
@@ -173,8 +102,8 @@ void imprime_bjogar (ESTADO e)
     char link[MAXLEN];
 
     printf(
-        "\t<SVG WIDTH=100 HEIGHT=50 "
-        "style=\"position:absolute; top:400px; left:800px\">\n"
+        "<SVG WIDTH=100 HEIGHT=50 "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:800px\">"
     );
     if (jogada_valida(&e)) {
         e.jogador = (e.jogador + 1) % 4;
@@ -184,8 +113,8 @@ void imprime_bjogar (ESTADO e)
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
             "<A XLINK:HREF=\"%s\">"
-            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
-            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></A></SVG>\n",
+            "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"FILL:%s\"/>"
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Jogar</TEXT></A></SVG>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
@@ -193,14 +122,14 @@ void imprime_bjogar (ESTADO e)
     } else {
         printf(
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
-            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGNT=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Jogar</TEXT></SVG>\n",
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Jogar</TEXT></SVG>\n",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
         );
     }
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Imprime o botão Limpar
 
 @param e        O estado actual do jogo
@@ -209,8 +138,8 @@ void imprime_blimpar (ESTADO e)
 {
     char link[MAXLEN];
     printf(
-        "\t<SVG WIDTH=100 HEIGHT=50 "
-        "style=\"position:absolute; top:400px; left:950px\">\n"
+        "<SVG WIDTH=100 HEIGHT=50 "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:950px\">"
     );
     if (e.seleccao != 0) {
         e.seleccao = 0;
@@ -218,7 +147,7 @@ void imprime_blimpar (ESTADO e)
         printf(
             "<A XLINK:HREF=\"%s\">"
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
-            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></A></SVG>\n",
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Limpar</TEXT></A></SVG>\n",
             link,
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
             TXT_X, TXT_Y
@@ -226,13 +155,14 @@ void imprime_blimpar (ESTADO e)
     } else {
         printf(
             "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
-            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"midle\" TEXT-ALIGN=\"center\" FONT-FAMILY=\"serif\" FONT-WEIGHT=\"bold\">Limpar</TEXT></SVG>\n",
+            "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Limpar</TEXT></SVG>\n",
             RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
             TXT_X, TXT_Y
         );
     }
 }
 
+/*==================================================================*/
 void imprime_ult_jogada (const char *path, const ESTADO *e)
 {
     int j;                      /* jogador */
@@ -250,7 +180,7 @@ void imprime_ult_jogada (const char *path, const ESTADO *e)
                 imprime_carta(path, xc, yc, *e, i);
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Imprime o html correspondente a uma carta
 
 @param path     O URL correspondente à pasta que contém todas as cartas
@@ -280,7 +210,7 @@ void imprime_carta (const char *path, const int x, int y, ESTADO e, const unsign
     );
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Imprime o estado do jogo
 
 Esta função imprime a mão do jogador
@@ -300,7 +230,7 @@ void imprime (const char *path, const ESTADO *e)
     /* -------------------------------------------------- */
     printf( /* opening SVG tag */
         "<SVG WIDTH=440 HEIGHT=120 "
-        "style=\"position:absolute; top:400px; left:110px\">\n"
+        "STYLE=\"POSITION:ABSOLUTE; TOP:400px; LEFT:110px\">\n"
     );
     /* imprime a mao do jogador */
     for (i = 0; mao > 0; mao >>= 1, i++)
@@ -316,16 +246,16 @@ void imprime (const char *path, const ESTADO *e)
 
     /* imprime o numero de cartas dos bots */
     printf(
-        "<TABLE BORDER=\"4px\" BORDERCOLOR=\"Black\" "
+        "<TABLE BORDER=\"4px\" BORDERCOLOR=\"BLACK\" "
         "STYLE=\"BACKGROUND-COLOR: YELLOW\">\n"
-        "<TR>\n"
-        "\t<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
+        "<TR>"
+        "<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
         "</TR>\n"
     );
     for (j = 0; j < 4; yj += YJ_STEP, j++)
         printf(
-            "<TR>\n"
-            "\t<TD>%d</TD><TD>%d</TD><TD>0</TD>\n"
+            "<TR>"
+            "<TD>%d</TD><TD>%d</TD><TD>0</TD>"
             "</TR>\n",
             j+1, e->ncartas[j]
         );
@@ -333,7 +263,7 @@ void imprime (const char *path, const ESTADO *e)
     imprime_ult_jogada(path, e);
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 void bot_joga (ESTADO *e)
 {
     if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
@@ -345,7 +275,7 @@ void bot_joga (ESTADO *e)
     }
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Trata os argumentos da CGI
 
 Esta função recebe a query que é passada à cgi-bin e trata-a.
@@ -368,7 +298,7 @@ void parse (char *query)
         bot_joga(&e);
 }
 
-/*----------------------------------------------------------------------------*/
+/*==================================================================*/
 /** \brief Função principal
 
 Função principal do programa que imprime os cabeçalhos necessários e depois disso invoca
