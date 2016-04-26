@@ -58,6 +58,7 @@ typedef struct {
     unsigned int ncartas[4];
     unsigned int jogador;
     unsigned int ult_jogador_valido;
+    unsigned int pontos[4];
 } State;
 
 /*==================================================================*/
@@ -168,15 +169,15 @@ State str2estado (const char *str)
 {
     State e;
     sscanf(str, "q="
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
         "%u_%llu_%u",
-        &e.mao[0], &e.ult_jogada[0], &e.ncartas[0],
-        &e.mao[1], &e.ult_jogada[1], &e.ncartas[1],
-        &e.mao[2], &e.ult_jogada[2], &e.ncartas[2],
-        &e.mao[3], &e.ult_jogada[3], &e.ncartas[3],
+        &e.mao[0], &e.ult_jogada[0], &e.ncartas[0], &e.pontos[0],
+        &e.mao[1], &e.ult_jogada[1], &e.ncartas[1], &e.pontos[1],
+        &e.mao[2], &e.ult_jogada[2], &e.ncartas[2], &e.pontos[2],
+        &e.mao[3], &e.ult_jogada[3], &e.ncartas[3], &e.pontos[3],
         &e.jogador, &e.seleccao, &e.ult_jogador_valido
     );
     return e;
@@ -187,15 +188,15 @@ char* estado2str (const State *e)
 {
     static char str[MAXLEN];
     sprintf(str,
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
-        "%llu+%llu+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
+        "%llu+%llu+%u+%u_"
         "%u_%llu_%u",
-        e->mao[0], e->ult_jogada[0], e->ncartas[0],
-        e->mao[1], e->ult_jogada[1], e->ncartas[1],
-        e->mao[2], e->ult_jogada[2], e->ncartas[2],
-        e->mao[3], e->ult_jogada[3], e->ncartas[3],
+        e->mao[0], e->ult_jogada[0], e->ncartas[0], e->pontos[0],
+        e->mao[1], e->ult_jogada[1], e->ncartas[1], e->pontos[1],
+        e->mao[2], e->ult_jogada[2], e->ncartas[2], e->pontos[2],
+        e->mao[3], e->ult_jogada[3], e->ncartas[3], e->pontos[3],
         e->jogador, e->seleccao, e->ult_jogador_valido
     );
     return str;
@@ -223,11 +224,12 @@ void baralhar (State *e)
 void initEstado (State *e)
 {
     int i;
-    e->seleccao = (MAO) 0;                     /* cartas selecionadas pelo jogador */
+    e->seleccao = (MAO) 0;
     for (i = 0; i < 4; i++) {
-        e->mao[i] = (MAO) 0;                   /* começam todas vazias */
-        e->ult_jogada[i] = (MAO) 0;            /* começam todas vazias */
-        e->ncartas[i] = 0;                     /* jogadores começam com 0 cartas */
+        e->mao[i] = (MAO) 0;
+        e->ult_jogada[i] = (MAO) 0;
+        e->ncartas[i] = 0;
+        e->pontos[i] = 0;
     }
     baralhar(e);
     for (i = 0; i < 4 && (e->mao[i] % 2 == 0); i++);

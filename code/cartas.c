@@ -26,7 +26,9 @@ int jogada_valida (const State *e)
     MAO jogada = e->seleccao;
     MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
     Card* cartas = jogada2cartas(jogada);
+    /*
     Card* ult_cartas = jogada2cartas(ult_jogada);
+    */
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
 
@@ -34,13 +36,17 @@ int jogada_valida (const State *e)
         switch (bits) {
             case PLAY_SINGLE:
                 res = 1;
+                /* test_play1 */
                 break;
             case PLAY_PAIR:
             case PLAY_TRIPLE:
+                /* test_play2 */
+                /* test_play3 */
                 /* ha algum erro aqui */
                 res = valores_iguais(cartas);
                 break;
             case PLAY_FIVE:
+                /* test_play5 */
                 res = 1;
                 break;
             default:
@@ -50,15 +56,17 @@ int jogada_valida (const State *e)
     } else if (bits == ult_bits) { /* tem de jogar de acordo com a ult jogada valida */
         switch (bits) {
             case PLAY_SINGLE:
+                /* test_play1 */
                 res = (jogada > ult_jogada);
                 break;
             case PLAY_PAIR:
-                res = (valores_iguais(cartas) && (ult_cartas[0].valor < cartas[0].valor || ult_cartas[1].naipe < cartas[1].naipe));
+                /* test_play2 */
                 break;
             case PLAY_TRIPLE:
-                res = (valores_iguais(cartas) && (ult_cartas[0].valor < cartas[0].valor));
+                /* test_play3 */
                 break;
             case PLAY_FIVE:
+                /* test_play5 */
                 res = 1;
                 break;
             default:
@@ -245,8 +253,8 @@ void imprime (const State *e)
     );
     for (j = 0; j < 4; yj += YJ_STEP, j++)
         printf(
-            "<TR><TD>%d</TD><TD>%u</TD><TD>0</TD></TR>\n",
-            j+1, e->ncartas[j]
+            "<TR><TD>%u</TD><TD>%u</TD><TD>%u</TD></TR>\n",
+            j+1, e->ncartas[j], e->pontos[j]
         );
     printf("</TABLE>\n");
     imprime_ult_jogada(e);
@@ -260,9 +268,10 @@ void bot_joga (State *e)
     if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
         unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
         e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
+        e->jogador = (e->jogador + 1) % 4;
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
-        /* printf("fazer qq merda aqui\n"); */
-        e->jogador = (e->jogador + 3) % 4;
+        printf("fazer qq merda aqui\n");
+        e->jogador = (e->jogador + 1) % 4;
     }
 }
 
