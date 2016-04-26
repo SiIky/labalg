@@ -41,9 +41,6 @@
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
 
-/* valor de uma matriz/estado E na posicao/indice I */
-#define CARTA_EXISTE(E, I)      (E & ((MAO) 1 << I))
-
 /* Escreve N (0 ou 1) na posicao/indice I da matriz/estado E */
 #define ESCMX(E,I,N)    (N == 0) ? \
                         (rem_carta(E, I)) : \
@@ -66,7 +63,7 @@ typedef struct {
 /*==================================================================*/
 MAO             add_carta       (const MAO *e, const unsigned int idx);
 MAO             rem_carta       (const MAO *e, const unsigned int idx);
-int             carta_existe    (const MAO e, const unsigned int idx);
+int             carta_existe    (MAO e, const unsigned int idx);
 Card            mao2carta       (MAO carta);
 Card*           jogada2cartas   (MAO jogada);
 State           str2estado      (const char *str);
@@ -128,10 +125,9 @@ MAO rem_carta (const MAO *e, const unsigned int idx)
 @param idx      O indice da carta (inteiro entre 0 e 51)
 @return         1 se a carta existe, 0 caso contrário
 */
-int carta_existe (const MAO e, const unsigned int idx)
+int carta_existe (MAO e, const unsigned int idx)
 {
-    return (e & ((MAO) 1 << idx));
-    /* return ((e >> idx) & ((MAO) 1)); */
+    return ((e >> idx) & ((MAO) 1));
 }
 
 /*==================================================================*/
@@ -140,7 +136,7 @@ Card mao2carta (MAO carta)
     Card c;
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
-    for (c.naipe = 0; !(CARTA_EXISTE(carta, 0)); carta >>= 1)
+    for (c.naipe = 0; !(carta_existe(carta, 0)); carta >>= 1)
     /* for (c.naipe = 0; (carta ^ 1); carta >>= 1) */
         c.naipe++;
     return c;

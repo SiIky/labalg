@@ -187,7 +187,7 @@ void imprime_ult_jogada (const State *e)
 */
 void imprime_carta (const int x, int y, State e, const unsigned int idx)
 {
-    if (CARTA_EXISTE(e.seleccao, idx)) {
+    if (carta_existe(e.seleccao, idx)) {
         y -= YC_SEL_STEP;
         e.seleccao = rem_carta(&e.seleccao, idx);
     } else {
