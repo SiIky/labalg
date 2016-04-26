@@ -14,27 +14,6 @@ int valores_iguais (Card cartas[])
 }
 
 /*==================================================================*/
-unsigned int trailingZ (MAO n)
-{
-    unsigned int count;
-    for (count = 0; n > 0 && (n ^ 1); n >>= 1, count++);
-    return count;
-}
-
-/*==================================================================*/
-/** \brief Devolve o número de bits a 1
-
-@param n        Número a calcular
-@return         O número de bits 1
-*/
-unsigned int bitsUm (MAO n)
-{
-    unsigned int count;
-    for (count = 0; n > 0; count += n % 2, n >>= 1);
-    return count;
-}
-
-/*==================================================================*/
 /** \brief Verifica se uma jogada é válida
 
 @param jogada           As cartas selecionadas

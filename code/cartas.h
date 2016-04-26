@@ -37,14 +37,12 @@
 #define PLAY_FIVE       5
 
 /*==================================================================*/
-void            bot_joga                (State *e);
-void            parse                   (char *query);
-int             valores_iguais          (Card cartas[]);
-unsigned int    trailingZ               (MAO n);
-unsigned int    bitsUm                  (MAO n);
-int             jogada_valida           (const State *e);
-void            imprime_bjogar          (State e);
-void            imprime_blimpar         (State e);
-void            imprime_carta           (const int x, int y, State e, const unsigned int idx);
-void            imprime_ult_jogada      (const State *e);
-void            imprime                 (const State *e);
+void    bot_joga                (State *e);
+void    parse                   (char *query);
+int     valores_iguais          (Card cartas[]);
+int     jogada_valida           (const State *e);
+void    imprime_bjogar          (State e);
+void    imprime_blimpar         (State e);
+void    imprime_carta           (const int x, int y, State e, const unsigned int idx);
+void    imprime_ult_jogada      (const State *e);
+void    imprime                 (const State *e);
