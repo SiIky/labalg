@@ -25,45 +25,25 @@ int jogada_valida (const State *e)
     int res = 0;
     MAO jogada = e->seleccao;
     MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
-    Card* cartas = jogada2cartas(jogada);
+    Card *cartas = jogada2cartas(jogada);
     /*
-    Card* ult_cartas = jogada2cartas(ult_jogada);
+    Card *ult_cartas = jogada2cartas(ult_jogada);
     */
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
 
-    if (e->jogador == e->ult_jogador_valido) { /* pode jogar qq coisa */
+    if (e->jogador == e->ult_jogador_valido || bits == ult_bits) { /* pode jogar qq coisa */
         switch (bits) {
             case PLAY_SINGLE:
-                res = 1;
-                /* test_play1 */
+                res = test_play1(jogada, ult_jogada);
                 break;
             case PLAY_PAIR:
+                res = test_play2(jogada, ult_jogada);
+                break;
             case PLAY_TRIPLE:
-                /* test_play2 */
-                /* test_play3 */
+                res = test_play3(jogada, ult_jogada);
                 /* ha algum erro aqui */
                 res = valores_iguais(cartas);
-                break;
-            case PLAY_FIVE:
-                /* test_play5 */
-                res = 1;
-                break;
-            default:
-                res = 0;
-                break;
-        }
-    } else if (bits == ult_bits) { /* tem de jogar de acordo com a ult jogada valida */
-        switch (bits) {
-            case PLAY_SINGLE:
-                /* test_play1 */
-                res = (jogada > ult_jogada);
-                break;
-            case PLAY_PAIR:
-                /* test_play2 */
-                break;
-            case PLAY_TRIPLE:
-                /* test_play3 */
                 break;
             case PLAY_FIVE:
                 /* test_play5 */

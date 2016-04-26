@@ -1,7 +1,7 @@
 /* =========================================================
  * Definição das Format Strings para printf e etc
  *
- *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]"
+ *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]+pontos[n]"
  *
  *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(jogador)_(seleccao)_(ult_jogador_valido)"
  *
@@ -66,13 +66,68 @@ MAO             add_carta       (const MAO *e, const unsigned int idx);
 MAO             rem_carta       (const MAO *e, const unsigned int idx);
 int             carta_existe    (MAO e, const unsigned int idx);
 Card            mao2carta       (MAO carta);
-Card*           jogada2cartas   (MAO jogada);
+Card*           jogada2cartas   (const MAO jogada);
 State           str2estado      (const char *str);
 char*           estado2str      (const State *e);
 void            baralhar        (State *e);
 void            initEstado      (State *e);
 unsigned int    trailingZ       (MAO n);
 unsigned int    bitsUm          (MAO n);
+int             test_play1      (const MAO m, const MAO ult);
+int             test_play2      (const MAO m, const MAO ult);
+int             test_play3      (const MAO m, const MAO ult);
+
+/*==================================================================*/
+int test_play1 (const MAO m, const MAO ult)
+{
+    int res;
+    if (ult == 0)
+        res = 1;
+    else
+        res = m > ult;
+    return res;
+}
+
+/*==================================================================*/
+int test_play2 (const MAO m, const MAO ult)
+{
+    int res;
+    Card *jogada = jogada2cartas(m);
+    Card *ult_jogada = jogada2cartas(ult);
+
+    if (jogada[0].valor != jogada[1].valor)
+        res = 0;
+    else if (ult == 0 || jogada[0].valor > ult_jogada[0].valor)
+        res = 1;
+    else if (jogada[0].valor == ult_jogada[0].valor)
+        res = (jogada[1].naipe > ult_jogada[1].naipe);
+    else
+        res = 0;
+
+    return res;
+}
+
+/*==================================================================*/
+int test_play3 (const MAO m, const MAO ult)
+{
+    int res;
+    Card *jogada = jogada2cartas(m);
+    Card *ult_jogada = jogada2cartas(ult);
+
+    if (jogada[0].valor != jogada[1].valor || jogada[1].valor != jogada[2].valor)
+        res = 0;
+    else if (ult == 0 || jogada[0].valor > ult_jogada[0].valor)
+        res = 1;
+    else
+        res = 0;
+
+    return res;
+}
+
+/*==================================================================*/
+int test_play5 (const MAO m, const MAO ult)
+{
+}
 
 /*==================================================================*/
 unsigned int trailingZ (MAO n)
@@ -138,7 +193,6 @@ Card mao2carta (MAO carta)
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
     for (c.naipe = 0; !(carta_existe(carta, 0)); carta >>= 1)
-    /* for (c.naipe = 0; (carta ^ 1); carta >>= 1) */
         c.naipe++;
     return c;
 }
@@ -149,18 +203,17 @@ Card mao2carta (MAO carta)
 @param jogada   A jogada a converter
 @return         Os pares naipe/figura ordenados por figuras
 */
-Card* jogada2cartas (MAO jogada)
+Card* jogada2cartas (const MAO jogada)
 {
+    unsigned int i, w;
+    unsigned int b = bitsUm(jogada);
     static Card cartas[13];
-    int i, w;
-    /* fazer coisas aqui */
-    for (i = w = 0; i < 52 && w < 13; jogada >>= 1, i++)
-        if (jogada % 2 == 1)
+    for (i = w = 0; i < 52 && w < b; i++)
+        if (carta_existe(jogada, i))
             cartas[w++] = mao2carta((MAO) 1 << i);
 
     cartas[w].naipe = 20;
     cartas[w].valor = 20;
-
     return cartas;
 }
 
