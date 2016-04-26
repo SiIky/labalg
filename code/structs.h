@@ -37,6 +37,8 @@
 #define MAXLEN          10240
 #define TERNOS          ((MAO) 1 << 3)
 
+#define PROX_JOG(J)             ((J + 1) % 4)
+#define JOG_ANT(J)              ((J + 3) % 4)
 #define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
@@ -125,9 +127,11 @@ int test_play3 (const MAO m, const MAO ult)
 }
 
 /*==================================================================*/
+/*
 int test_play5 (const MAO m, const MAO ult)
 {
 }
+*/
 
 /*==================================================================*/
 unsigned int trailingZ (MAO n)

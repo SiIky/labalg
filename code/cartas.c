@@ -25,10 +25,6 @@ int jogada_valida (const State *e)
     int res = 0;
     MAO jogada = e->seleccao;
     MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
-    Card *cartas = jogada2cartas(jogada);
-    /*
-    Card *ult_cartas = jogada2cartas(ult_jogada);
-    */
     unsigned int bits = bitsUm(jogada);
     unsigned int ult_bits = bitsUm(ult_jogada);
 
@@ -43,7 +39,6 @@ int jogada_valida (const State *e)
             case PLAY_TRIPLE:
                 res = test_play3(jogada, ult_jogada);
                 /* ha algum erro aqui */
-                res = valores_iguais(cartas);
                 break;
             case PLAY_FIVE:
                 /* test_play5 */
@@ -70,11 +65,11 @@ void imprime_bjogar (State e)
 
     printf(
         "<SVG WIDTH=%d HEIGHT=%d "
-        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:200px\">",
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:175px\">",
         RECT_WIDTH, RECT_HEIGHT
     );
     if (jogada_valida(&e)) {
-        e.jogador = (e.jogador + 1) % 4;
+        e.jogador = PROX_JOG(e.jogador);
         e.ult_jogador_valido = 0;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
@@ -104,12 +99,38 @@ void imprime_bjogar (State e)
 
 @param e        O estado actual do jogo
 */
+void imprime_bpassar (State e)
+{
+    char link[MAXLEN];
+    printf(
+        "<SVG WIDTH=%d HEIGHT=%d "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:405px\">",
+        RECT_WIDTH, RECT_HEIGHT
+    );
+
+    e.jogador = PROX_JOG(e.jogador);
+    sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
+    printf(
+        "<A XLINK:HREF=\"%s\">"
+        "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
+        "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Passar</TEXT></A></SVG>\n",
+        link,
+        RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
+        TXT_X, TXT_Y
+    );
+}
+
+/*==================================================================*/
+/** \brief Imprime o botão Limpar
+
+@param e        O estado actual do jogo
+*/
 void imprime_blimpar (State e)
 {
     char link[MAXLEN];
     printf(
         "<SVG WIDTH=%d HEIGHT=%d "
-        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:325px\">",
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:290px\">",
         RECT_WIDTH, RECT_HEIGHT
     );
     if (e.seleccao != 0) {
@@ -153,15 +174,24 @@ void imprime_ult_jogada (const State *e)
     );
 
     for (yj = YJ_INIT, j = 0; j < 4; yj += YJ_STEP, j++)
-        for (xc = XUC_INIT, i = 0; i < 52; ult_jogada[j] >>= 1, i++)
-            if (ult_jogada[j] & (MAO) 1) {
-                c = mao2carta((MAO) 1 << i);
-                printf(
-                    "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A>\n",
-                    xc, yj, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
-                );
-                xc += XC_STEP;
-            }
+        if (ult_jogada[j] != 0) {
+            for (xc = XUC_INIT, i = 0; i < 52; ult_jogada[j] >>= 1, i++)
+                if (ult_jogada[j] & (MAO) 1) {
+                    c = mao2carta((MAO) 1 << i);
+                    printf(
+                        "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/>\n",
+                        xc, yj, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
+                    );
+                    xc += XC_STEP;
+                }
+        } else {
+            printf(
+                "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
+                "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Passou</TEXT>\n",
+                RECT_X, j*RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_D,
+                TXT_X, j*RECT_Y+20
+            );
+        }
     printf("</SVG>\n");
 }
 
@@ -240,6 +270,7 @@ void imprime (const State *e)
     imprime_ult_jogada(e);
     imprime_bjogar(*e);
     imprime_blimpar(*e);
+    imprime_bpassar(*e);
 }
 
 /*==================================================================*/
@@ -248,10 +279,10 @@ void bot_joga (State *e)
     if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
         unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
         e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
-        e->jogador = (e->jogador + 1) % 4;
+        e->jogador = PROX_JOG(e->jogador);
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
         printf("fazer qq merda aqui\n");
-        e->jogador = (e->jogador + 1) % 4;
+        e->jogador = PROX_JOG(e->jogador);
     }
 }
 
