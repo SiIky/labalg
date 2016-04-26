@@ -111,6 +111,7 @@ void imprime_bjogar (State e)
         e.ult_jogador_valido = 0;
         e.mao[0] = REM_SELECCAO(e.mao[0], e.seleccao);
         e.ult_jogada[0] = e.seleccao;
+        e.ncartas[0] -= bitsUm(e.seleccao);
         e.seleccao = (MAO) 0;
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
@@ -265,7 +266,7 @@ void imprime (const State *e)
     );
     for (j = 0; j < 4; yj += YJ_STEP, j++)
         printf(
-            "<TR><TD>%d</TD><TD>%d</TD><TD>0</TD></TR>\n",
+            "<TR><TD>%d</TD><TD>%u</TD><TD>0</TD></TR>\n",
             j+1, e->ncartas[j]
         );
     printf("</TABLE>\n");
