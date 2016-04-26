@@ -64,15 +64,38 @@ typedef struct {
 } State;
 
 /*==================================================================*/
-MAO     add_carta       (const MAO *e, const unsigned int idx);
-MAO     rem_carta       (const MAO *e, const unsigned int idx);
-int     carta_existe    (const MAO e, const unsigned int idx);
-Card    mao2carta       (MAO carta);
-Card*   jogada2cartas   (MAO jogada);
-State   str2estado      (const char *str);
-char*   estado2str      (const State *e);
-void    baralhar        (State *e);
-void    initEstado      (State *e);
+MAO             add_carta       (const MAO *e, const unsigned int idx);
+MAO             rem_carta       (const MAO *e, const unsigned int idx);
+int             carta_existe    (const MAO e, const unsigned int idx);
+Card            mao2carta       (MAO carta);
+Card*           jogada2cartas   (MAO jogada);
+State           str2estado      (const char *str);
+char*           estado2str      (const State *e);
+void            baralhar        (State *e);
+void            initEstado      (State *e);
+unsigned int    trailingZ       (MAO n);
+unsigned int    bitsUm          (MAO n);
+
+/*==================================================================*/
+unsigned int trailingZ (MAO n)
+{
+    unsigned int count;
+    for (count = 0; n > 0 && (n ^ 1); n >>= 1, count++);
+    return count;
+}
+
+/*==================================================================*/
+/** \brief Devolve o número de bits a 1
+
+@param n        Número a calcular
+@return         O número de bits 1
+*/
+unsigned int bitsUm (MAO n)
+{
+    unsigned int count;
+    for (count = 0; n > 0; count += n % 2, n >>= 1);
+    return count;
+}
 
 /*==================================================================*/
 /** \brief Adiciona uma carta ao estado
