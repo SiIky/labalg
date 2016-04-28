@@ -43,11 +43,6 @@
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
 
-/* Escreve N (0 ou 1) na posicao/indice I da matriz/estado E */
-#define ESCMX(E,I,N)    (N == 0) ? \
-                        (rem_carta(E, I)) : \
-                        (add_carta(E, I));
-
 typedef struct {
     unsigned int naipe, valor;
 } Card;
@@ -68,68 +63,66 @@ MAO             add_carta       (const MAO *e, const unsigned int idx);
 MAO             rem_carta       (const MAO *e, const unsigned int idx);
 int             carta_existe    (MAO e, const unsigned int idx);
 Card            mao2carta       (MAO carta);
-Card*           jogada2cartas   (const MAO jogada);
+void            jogada2cartas   (Card *cartas, unsigned int b, const MAO jogada);
 State           str2estado      (const char *str);
 char*           estado2str      (const State *e);
 void            baralhar        (State *e);
 void            initEstado      (State *e);
 unsigned int    trailingZ       (MAO n);
 unsigned int    bitsUm          (MAO n);
-int             test_play1      (const MAO m, const MAO ult);
-int             test_play2      (const MAO m, const MAO ult);
-int             test_play3      (const MAO m, const MAO ult);
+int             test_play1      (const State *e);
+int             test_play2      (const State *e);
+int             test_play3      (const State *e);
 
 /*==================================================================*/
-int test_play1 (const MAO m, const MAO ult)
+int test_play1 (const State *e)
 {
-    int res;
-    if (ult == 0)
-        res = 1;
-    else
-        res = m > ult;
-    return res;
+    return (e->jogador == e->ult_jogador_valido ||
+           e->seleccao > e->ult_jogada[e->ult_jogador_valido]);
 }
 
 /*==================================================================*/
-int test_play2 (const MAO m, const MAO ult)
+int test_play2 (const State *e)
 {
-    int res;
-    Card *jogada = jogada2cartas(m);
-    Card *ult_jogada = jogada2cartas(ult);
+    Card jogada[2];
+    jogada2cartas(jogada, 2, e->seleccao);
+    Card ult_jogada[2];
+    jogada2cartas(ult_jogada, 2, e->ult_jogada[e->ult_jogador_valido]);
 
-    if (jogada[0].valor != jogada[1].valor)
-        res = 0;
-    else if (ult == 0 || jogada[0].valor > ult_jogada[0].valor)
-        res = 1;
-    else if (jogada[0].valor == ult_jogada[0].valor)
-        res = (jogada[1].naipe > ult_jogada[1].naipe);
-    else
-        res = 0;
-
-    return res;
+    return (jogada[0].valor == jogada[1].valor &&
+           (e->jogador == e->ult_jogador_valido ||
+           jogada[0].valor > ult_jogada[0].valor ||
+           (jogada[0].valor == ult_jogada[0].valor &&
+           jogada[1].naipe > ult_jogada[1].naipe)));
 }
 
 /*==================================================================*/
-int test_play3 (const MAO m, const MAO ult)
+int test_play3 (const State *e)
 {
-    int res;
-    Card *jogada = jogada2cartas(m);
-    Card *ult_jogada = jogada2cartas(ult);
+    Card jogada[3];
+    jogada2cartas(jogada, 3, e->seleccao);
+    Card ult_jogada[3];
+    jogada2cartas(ult_jogada, 3, e->ult_jogada[e->ult_jogador_valido]);
 
-    if (jogada[0].valor != jogada[1].valor || jogada[1].valor != jogada[2].valor)
-        res = 0;
-    else if (ult == 0 || jogada[0].valor > ult_jogada[0].valor)
-        res = 1;
-    else
-        res = 0;
-
-    return res;
+    return (jogada[0].valor == jogada[1].valor &&
+           jogada[0].valor == jogada[2].valor &&
+           jogada[0].valor > ult_jogada[0].valor);
 }
 
 /*==================================================================*/
 /*
-int test_play5 (const MAO m, const MAO ult)
+int test_play5 (const State *e)
 {
+    if testar straight_flush
+        return 1;
+    else if testar 4ofakind
+        return 1;
+    else if testar full_house
+        return 1;
+    else if testar flush
+        return 1;
+    else
+        return testar straight;
 }
 */
 
@@ -207,18 +200,12 @@ Card mao2carta (MAO carta)
 @param jogada   A jogada a converter
 @return         Os pares naipe/figura ordenados por figuras
 */
-Card* jogada2cartas (const MAO jogada)
+void jogada2cartas (Card *cartas, unsigned int b, const MAO jogada)
 {
     unsigned int i, w;
-    unsigned int b = bitsUm(jogada);
-    static Card cartas[13];
     for (i = w = 0; i < 52 && w < b; i++)
         if (carta_existe(jogada, i))
             cartas[w++] = mao2carta((MAO) 1 << i);
-
-    cartas[w].naipe = 20;
-    cartas[w].valor = 20;
-    return cartas;
 }
 
 /*==================================================================*/

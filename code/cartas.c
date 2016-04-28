@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include "structs.h"
 #include "cartas.h"
 
@@ -23,34 +24,27 @@ int valores_iguais (Card cartas[])
 int jogada_valida (const State *e)
 {
     int res = 0;
-    MAO jogada = e->seleccao;
-    MAO ult_jogada = e->ult_jogada[(e->ult_jogador_valido + 3) % 4];
-    unsigned int bits = bitsUm(jogada);
-    unsigned int ult_bits = bitsUm(ult_jogada);
+    unsigned int nb = bitsUm(e->seleccao);
 
-    if (e->jogador == e->ult_jogador_valido || bits == ult_bits) { /* pode jogar qq coisa */
-        switch (bits) {
-            case PLAY_SINGLE:
-                res = test_play1(jogada, ult_jogada);
-                break;
-            case PLAY_PAIR:
-                res = test_play2(jogada, ult_jogada);
-                break;
-            case PLAY_TRIPLE:
-                res = test_play3(jogada, ult_jogada);
-                /* ha algum erro aqui */
-                break;
-            case PLAY_FIVE:
-                /* test_play5 */
-                res = 1;
-                break;
-            default:
-                res = 0;
-                break;
-        }
-    } else {
-        res = 0;
+    switch (nb) {
+        case PLAY_SINGLE:
+            res = test_play1(e);
+            break;
+        case PLAY_PAIR:
+            res = test_play2(e);
+            break;
+        case PLAY_TRIPLE:
+            res = test_play3(e);
+            break;
+        case PLAY_FIVE:
+            /* test_play5 */
+            res = 1;
+            break;
+        default:
+            res = 0;
+            break;
     }
+
     return res;
 }
 
@@ -279,11 +273,10 @@ void bot_joga (State *e)
     if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
         unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
         e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
-        e->jogador = PROX_JOG(e->jogador);
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
         printf("fazer qq merda aqui\n");
-        e->jogador = PROX_JOG(e->jogador);
     }
+        e->jogador = PROX_JOG(e->jogador);
 }
 
 /*==================================================================*/
