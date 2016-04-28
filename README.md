@@ -7,7 +7,7 @@
     * Defesa: 29 Marco~4 Abril
     * 6 valores
 2. Segunda Etapa
-    * Entrega: 3 Maio
+    * Entrega: 8 Maio
     * Defesa: 16~20 Maio
     * 7 valores
 3. Terceira Etapa

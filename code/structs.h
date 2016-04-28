@@ -81,7 +81,7 @@ int             test_play1      (const State *e);
 int             test_play2      (const State *e);
 int             test_play3      (const State *e);
 /*int             test_play5      (const State *e);*/
-int             tipodecombo     (const MAO e);
+int             tipodecombo     (const MAO *e);
 int             test_4ofakind   (const MAO e);
 int             test_fullhouse  (const MAO e);
 int             test_flush      (const MAO e);
@@ -123,17 +123,17 @@ int test_play3 (const State *e)
 }
 
 /*==================================================================*/
-int tipodecombo (const MAO e)
+int tipodecombo (const MAO *e)
 {
-    if (test_straight(e) && test_flush(e))
+    if (test_straight(*e) && test_flush(*e))
         return 5;
-    else if (test_4ofakind(e) < 13)
+    else if (test_4ofakind(*e) < 13)
         return 4;
-    else if (test_fullhouse(e) < 13)
+    else if (test_fullhouse(*e) < 13)
         return 3;
-    else if (test_flush(e) < 4)
+    else if (test_flush(*e) < 4)
         return 2;
-    else if (test_straight(e) < 13)
+    else if (test_straight(*e) < 13)
         return 1;
 
     return 0;
