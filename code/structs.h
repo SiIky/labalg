@@ -44,7 +44,13 @@
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
 
 typedef struct {
-    unsigned int naipe, valor;
+    unsigned int naipes[4];
+    unsigned int valores[13];
+} CardsCount;
+
+typedef struct {
+    unsigned int naipe;
+    unsigned int valor;
 } Card;
 
 typedef unsigned long long int MAO;
@@ -64,6 +70,7 @@ MAO             rem_carta       (const MAO *e, const unsigned int idx);
 int             carta_existe    (MAO e, const unsigned int idx);
 Card            mao2carta       (MAO carta);
 void            jogada2cartas   (Card *cartas, unsigned int b, const MAO jogada);
+void            conta_cartas    (CardsCount *contas, const MAO e);
 State           str2estado      (const char *str);
 char*           estado2str      (const State *e);
 void            baralhar        (State *e);
@@ -73,6 +80,12 @@ unsigned int    bitsUm          (MAO n);
 int             test_play1      (const State *e);
 int             test_play2      (const State *e);
 int             test_play3      (const State *e);
+/*int             test_play5      (const State *e);*/
+int             tipodecombo     (const MAO e);
+int             test_4ofakind   (const MAO e);
+int             test_fullhouse  (const MAO e);
+int             test_flush      (const MAO e);
+int             test_straight   (const MAO e);
 
 /*==================================================================*/
 int test_play1 (const State *e)
@@ -110,21 +123,102 @@ int test_play3 (const State *e)
 }
 
 /*==================================================================*/
-/*
-int test_play5 (const State *e)
+int tipodecombo (const MAO e)
 {
-    if testar straight_flush
+    if (test_straight(e) && test_flush(e))
+        return 5;
+    else if (test_4ofakind(e) < 13)
+        return 4;
+    else if (test_fullhouse(e) < 13)
+        return 3;
+    else if (test_flush(e) < 4)
+        return 2;
+    else if (test_straight(e) < 13)
         return 1;
-    else if testar 4ofakind
-        return 1;
-    else if testar full_house
-        return 1;
-    else if testar flush
-        return 1;
-    else
-        return testar straight;
+
+    return 0;
 }
-*/
+
+/*==================================================================*/
+int test_straight (const MAO e)
+{
+    Card cartas[5];
+    jogada2cartas(cartas, 5, e);
+    int res = cartas[0].valor == (cartas[1].valor - 1) &&
+           cartas[1].valor == (cartas[2].valor - 1) &&
+           cartas[2].valor == (cartas[3].valor - 1) &&
+           cartas[3].valor == (cartas[4].valor - 1);
+    printf("test_straight: %d\n", res);
+    return res;
+}
+
+/*==================================================================*/
+int test_flush (const MAO e)
+{
+    Card cartas[5];
+    jogada2cartas(cartas, 5, e);
+    int res = cartas[0].naipe == cartas[1].naipe &&
+            cartas[0].naipe == cartas[2].naipe &&
+            cartas[0].naipe == cartas[3].naipe &&
+            cartas[0].naipe == cartas[4].naipe;
+    printf("test_flush: %d\n", res);
+    return res; /* tem de devolver o naipe da carta mais alta (cartas[4].valor) */
+}
+
+/*==================================================================*/
+int test_fullhouse (const MAO e)
+{
+    CardsCount cartas;
+    conta_cartas(&cartas, e);
+    int v, j;
+
+    /* procura por um triplo */
+    for (j = 0; j < 13 && cartas.valores[j] != 3; j++);
+    if (cartas.valores[j] != 3)
+        return 13;
+
+    /* procura por um par */
+    for (v = 0; v < 13 && cartas.valores[v] != 2; v++);
+    if (cartas.valores[v] != 2)
+        return 13;
+
+    return j; /* o valor da carta mais alta, pra comparacoes */
+}
+
+/*==================================================================*/
+int test_4ofakind (const MAO e)
+{
+    CardsCount cartas;
+    conta_cartas(&cartas, e);
+    int v;
+
+    for (v = 0; v < 13 && cartas.valores[v] != 4; v++);
+    if (cartas.valores[v] != 4)
+        return 13;
+
+    return v; /* o valor da carta mais alta, pra comparacoes */
+}
+
+/*==================================================================*/
+void joga_single (State *e)
+{
+    MAO a_jogar;
+    unsigned int idx, i;
+    if (e->jogador == e->ult_jogador_valido) {
+        idx = trailingZ(e->mao[e->jogador]);
+        a_jogar = (carta_existe(e->mao[e->jogador], ((MAO) 1 << idx)) ?
+                  (MAO) 1 << idx :
+                  0);
+    } else {
+        idx = trailingZ(e->ult_jogada[e->ult_jogador_valido]);
+        for (i = idx; i < 52 && (carta_existe(e->mao[e->jogador], ((MAO) 1 << i))); i++);
+        a_jogar = (carta_existe(e->mao[e->jogador], ((MAO) 1 << i)) ?
+                  (MAO) 1 << i :
+                  0);
+    }
+    e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], a_jogar);
+    e->ult_jogada[e->jogador] = a_jogar;
+}
 
 /*==================================================================*/
 unsigned int trailingZ (MAO n)
@@ -189,8 +283,8 @@ Card mao2carta (MAO carta)
     Card c;
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
-    for (c.naipe = 0; !(carta_existe(carta, 0)); carta >>= 1)
-        c.naipe++;
+    for (c.naipe = 0; !(carta_existe(carta, 0)); c.naipe++)
+        carta >>= 1;
     return c;
 }
 
@@ -206,6 +300,19 @@ void jogada2cartas (Card *cartas, unsigned int b, const MAO jogada)
     for (i = w = 0; i < 52 && w < b; i++)
         if (carta_existe(jogada, i))
             cartas[w++] = mao2carta((MAO) 1 << i);
+}
+
+/*==================================================================*/
+void conta_cartas (CardsCount *contas, const MAO e)
+{
+    Card c;
+    unsigned int i;
+    for (i = 0; i < 52; i++)
+        if (carta_existe(e, i)) {
+            c = mao2carta((MAO) 1 << i);
+            contas->valores[c.valor]++;
+            contas->naipes[c.naipe]++;
+        }
 }
 
 /*==================================================================*/

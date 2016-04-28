@@ -7,7 +7,7 @@
 #include "cartas.h"
 
 /*==================================================================*/
-int valores_iguais (Card cartas[])
+int valores_iguais (Card *cartas)
 {
     int i, res;
     for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
@@ -37,7 +37,7 @@ int jogada_valida (const State *e)
             res = test_play3(e);
             break;
         case PLAY_FIVE:
-            /* test_play5 */
+            /* res = test_play5(e); */
             res = 1;
             break;
         default:
@@ -274,9 +274,13 @@ void bot_joga (State *e)
         unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
         e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
     } else {    /* tem de jogar de acordo com a ultima jogada valida */
+        /* unsigned int nb = bitsUm(e->ult_jogada[e->ult_jogador_valido]); */
         printf("fazer qq merda aqui\n");
     }
-        e->jogador = PROX_JOG(e->jogador);
+
+    if (e->ult_jogada[e->jogador] != 0)
+        e->ult_jogador_valido = e->jogador;
+    e->jogador = PROX_JOG(e->jogador);
 }
 
 /*==================================================================*/
