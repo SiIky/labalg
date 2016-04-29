@@ -53,6 +53,7 @@ void imprime_bpassar (State e)
     );
 
     e.jogador = PROX_JOG(e.jogador);
+    e.ult_jogada[0] = (MAO) 0;
     sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
         "<A XLINK:HREF=\"%s\">"
@@ -102,14 +103,10 @@ void imprime_blimpar (State e)
 void imprime_ult_jogada (const State *e)
 {
     int j;                      /* jogador */
-    int xc;                     /* x inicial */
-    int yj;                     /* y inicial */
+    int xc;                     /* x inicial, das cartas */
+    int yj;                     /* y inicial, dos jogadores */
     int i;                      /* indice da carta a imprimir */
-    MAO ult_jogada[4];
     Card c;
-
-    for (i = 0; i < 4; i++)     /* guarda o array ult_jogada */
-        ult_jogada[i] = e->ult_jogada[i];
 
     printf( /* opening SVG tag */
         "<SVG WIDTH=%d HEIGHT=%d "
@@ -117,10 +114,12 @@ void imprime_ult_jogada (const State *e)
         SVG_WIDTH, 4 * SVG_HEIGHT
     );
 
-    for (yj = YJ_INIT, j = 0; j < 4; yj += YJ_STEP, j++)
-        if (ult_jogada[j] != 0) {
-            for (xc = XUC_INIT, i = 0; i < 52; ult_jogada[j] >>= 1, i++)
-                if (ult_jogada[j] & (MAO) 1) {
+    yj = YJ_INIT;
+    for (j = 0; j < 4; j++) {
+        if (e->ult_jogada[j] != 0) { /* imprime as cartas jogadas */
+            xc = XUC_INIT;
+            for (i = 0; i < 52; i++) {
+                if (carta_existe(e->ult_jogada[j], i)) {
                     c = mao2carta((MAO) 1 << i);
                     printf(
                         "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/>\n",
@@ -128,7 +127,8 @@ void imprime_ult_jogada (const State *e)
                     );
                     xc += XC_STEP;
                 }
-        } else {
+            }
+        } else { /* imprime um rect a dizer passou */
             printf(
                 "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"fill:%s\"/>"
                 "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Passou</TEXT>\n",
@@ -136,6 +136,8 @@ void imprime_ult_jogada (const State *e)
                 TXT_X, j*RECT_Y+20
             );
         }
+        yj += YJ_STEP;
+    }
     printf("</SVG>\n");
 }
 

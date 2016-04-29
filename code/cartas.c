@@ -26,46 +26,49 @@ int jogada_valida (const State *e)
 {
     unsigned int nb = bitsUm(e->seleccao);
 
-    switch (nb) {
-        case PLAY_SINGLE:
-            return test_play1(e);
-            break;
-        case PLAY_PAIR:
-            return test_play2(e);
-            break;
-        case PLAY_TRIPLE:
-            return test_play3(e);
-            break;
-        case PLAY_FIVE:
-            /* return test_play5(e); */
-            /*
-               int sel_combo = tipoecombo(&(e->seleccao));
-               if (sel_combo > 0)
-                   compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
-               else
-                   return 0;
-             */
-            return 1;
-            break;
-        default:
-            return 0;
-            break;
-    }
+    if (!(carta_existe(e->mao[0], (MAO) 0)) || carta_existe(e->seleccao, (MAO) 0))
+        switch (nb) {
+            case PLAY_SINGLE:
+                return test_play1(e);
+                break;
+            case PLAY_PAIR:
+                return test_play2(e);
+                break;
+            case PLAY_TRIPLE:
+                return test_play3(e);
+                break;
+            case PLAY_FIVE:
+                /* return test_play5(e); */
+                /*
+                   int sel_combo = tipoecombo(&(e->seleccao));
+                   if (sel_combo > 0)
+                       compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
+                   else
+                       return 0;
+                 */
+                return 1;
+                break;
+            default:
+                return 0;
+                break;
+        }
+    else
+        return 0;
 }
 
 /*==================================================================*/
 void bot_joga (State *e)
 {
-    if (e->jogador == e->ult_jogador_valido) {                  /* pode jogar qq coisa */
-        unsigned int idx = trailingZ(e->mao[e->jogador]);       /* indice da carta mais pequena */
-        e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], (MAO) 1 << idx);
-    } else {    /* tem de jogar de acordo com a ultima jogada valida */
-        /* unsigned int nb = bitsUm(e->ult_jogada[e->ult_jogador_valido]); */
-        printf("fazer qq merda aqui\n");
-    }
+    /*
+     for (i = 5; a_jogar == 0 && i > 0; i--) {
+        a_jogar = BOT_PROCURA_JOGADA(i);
+     */
+    bot_play1(e);
 
-    if (e->ult_jogada[e->jogador] != 0)
+    if (e->ult_jogada[e->jogador] != 0) {
         e->ult_jogador_valido = e->jogador;
+        e->ncartas[e->jogador] = update_ncartas(e->ncartas[e->jogador], e->ult_jogada[e->jogador]);
+    }
     e->jogador = PROX_JOG(e->jogador);
 }
 
@@ -81,7 +84,7 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 void parse (char *query)
 {
     State e;
-    if ((query != NULL) && (strlen(query) != 0))
+    if (query != NULL && strlen(query) > 0)
         e = str2estado(query);
     else
         initEstado(&e);

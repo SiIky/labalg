@@ -42,6 +42,14 @@
 #define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
+/*
+#define BOT_PROCURA_JOGADA(I)   (I == 1) ? \
+                                    procura1 : \
+                                    (I == 2) ? \
+                                    procura2 : \
+                                    (I == 3) ? \
+                                    procura3 : \
+*/
 
 typedef struct {
     unsigned int naipes[4];
@@ -65,6 +73,9 @@ typedef struct {
 } State;
 
 /*==================================================================*/
+unsigned int    trailingZ       (MAO n);
+unsigned int    bitsUm          (MAO n);
+unsigned int    update_ncartas  (const unsigned int ncartas, const MAO jogada);
 MAO             add_carta       (const MAO *e, const unsigned int idx);
 MAO             rem_carta       (const MAO *e, const unsigned int idx);
 int             carta_existe    (MAO e, const unsigned int idx);
@@ -75,8 +86,6 @@ State           str2estado      (const char *str);
 char*           estado2str      (const State *e);
 void            baralhar        (State *e);
 void            initEstado      (State *e);
-unsigned int    trailingZ       (MAO n);
-unsigned int    bitsUm          (MAO n);
 int             test_play1      (const State *e);
 int             test_play2      (const State *e);
 int             test_play3      (const State *e);
@@ -86,6 +95,7 @@ int             test_4ofakind   (const MAO e);
 int             test_fullhouse  (const MAO e);
 int             test_flush      (const MAO e);
 int             test_straight   (const MAO e);
+void            bot_play1       (State *e);
 
 /*==================================================================*/
 int test_play1 (const State *e)
@@ -200,22 +210,24 @@ int test_4ofakind (const MAO e)
 }
 
 /*==================================================================*/
-void joga_single (State *e)
+void bot_play1 (State *e)
 {
-    MAO a_jogar;
+    MAO a_jogar = 0;
     unsigned int idx, i;
+
     if (e->jogador == e->ult_jogador_valido) {
         idx = trailingZ(e->mao[e->jogador]);
-        a_jogar = (carta_existe(e->mao[e->jogador], ((MAO) 1 << idx)) ?
+        a_jogar = ((carta_existe(e->mao[e->jogador], idx)) ?
                   (MAO) 1 << idx :
-                  0);
+                  (MAO) 0);
     } else {
         idx = trailingZ(e->ult_jogada[e->ult_jogador_valido]);
-        for (i = idx; i < 52 && (carta_existe(e->mao[e->jogador], ((MAO) 1 << i))); i++);
-        a_jogar = (carta_existe(e->mao[e->jogador], ((MAO) 1 << i)) ?
+        for (i = idx; i < 52 && !(carta_existe(e->mao[e->jogador], i)); i++);
+        a_jogar = ((carta_existe(e->mao[e->jogador], i)) ?
                   (MAO) 1 << i :
-                  0);
+                  (MAO) 0);
     }
+
     e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], a_jogar);
     e->ult_jogada[e->jogador] = a_jogar;
 }
@@ -224,7 +236,7 @@ void joga_single (State *e)
 unsigned int trailingZ (MAO n)
 {
     unsigned int count;
-    for (count = 0; n > 0 && (n ^ 1); n >>= 1, count++);
+    for (count = 0; n > 0 && (n % 2 == 0); n >>= 1, count++);
     return count;
 }
 
@@ -275,6 +287,13 @@ MAO rem_carta (const MAO *e, const unsigned int idx)
 int carta_existe (MAO e, const unsigned int idx)
 {
     return ((e >> idx) & ((MAO) 1));
+}
+
+/*==================================================================*/
+unsigned int update_ncartas (const unsigned int ncartas, const MAO jogada)
+{
+    unsigned int i = bitsUm(jogada);
+    return ncartas - i;
 }
 
 /*==================================================================*/
