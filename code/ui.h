@@ -1,3 +1,69 @@
+/* URL da CGI */
+#define SCRIPT          "http://127.0.0.1/cgi-bin/bigtwo"
+
+/* URL da pasta com as cartas */
+#define BARALHO         "http://127.0.0.1/cards"
+
+/* ordem dos naipes e valores */
+#define NAIPES          "DCHS"
+#define VALORES         "3456789TJQKA2"
+
+/* valores usados pela função imprime */
+#define COR_TABULEIRO   "#116611"    /* RGB em HEX */
+#define XC_INIT         0            /* x inicial para cartas */
+#define YC_INIT         10          /* y inicial para cartas */
+#define XC_STEP         30           /* salto do x para cartas */
+#define YC_SEL_STEP     10           /* salto de cartas selecionadas */
+#define XUC_INIT        0
+#define YJ_INIT         0            /* y inicial para jogador */
+#define YJ_STEP         120          /* salto do y para jogador */
+
+/* definições dos botoes */
+#define SVG_WIDTH       200
+#define SVG_HEIGHT      120
+#define COR_BOT_A       "#C99660"        /* cor dos botões activados */
+#define COR_BOT_D       "#999999"        /* cor dos botões não activados */
+#define RECT_X          0                /* posicao dos botoes */
+#define RECT_Y          0                /* posicao dos botoes */
+#define RECT_WIDTH      100              /* largura dos botoes */
+#define RECT_HEIGHT     50               /* altura dos botoes */
+#define TXT_X           20               /* posicao do texto nos botoes */
+#define TXT_Y           30               /* posicao do texto nos botoes */
+
+void    imprime_bjogar          (State e);
+void    imprime_bpassar         (State e);
+void    imprime_blimpar         (State e);
+void    imprime_ult_jogada      (const State *e);
+void    imprime_carta           (const int x, int y, State e, const unsigned int idx);
+void    imprime                 (const State *e);
+void    game_over               (void);
+
+/*==================================================================*/
+void game_over (void)
+{
+    printf("acabou a brincadeira\n");
+}
+
+/*==================================================================*/
+void imprime_bordena (State e)
+{
+    char link[MAXLEN];
+
+    e.ordena ^= 1;
+    sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
+    printf(
+        "<SVG WIDTH=%d HEIGHT=%d "
+        "STYLE=\"POSITION:ABSOLUTE; TOP:350px; LEFT:60px\">"
+        "<A XLINK:HREF=\"%s\">"
+        "<RECT X=%d Y=%d WIDTH=%d HEIGHT=%d RY=5 STYLE=\"FILL:%s\"/>"
+        "<TEXT X=%d Y=%d TEXT-ANCHOR=\"MIDLE\" TEXT-ALIGN=\"CENTER\" FONT-FAMILY=\"SERIF\" FONT-WEIGHT=\"BOLD\">Ordenar</TEXT></A></SVG>\n",
+        RECT_WIDTH, RECT_HEIGHT,
+        link,
+        RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT, COR_BOT_A,
+        TXT_X, TXT_Y
+    );
+}
+
 /*==================================================================*/
 /** \brief Imprime o botão Jogar
 
@@ -19,6 +85,8 @@ void imprime_bjogar (State e)
         e.ult_jogada[0] = e.seleccao;
         e.ncartas[0] -= bitsUm(e.seleccao);
         e.seleccao = (MAO) 0;
+        e.decorrer = update_decorrer(&e);
+
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
             "<A XLINK:HREF=\"%s\">"
@@ -120,7 +188,7 @@ void imprime_ult_jogada (const State *e)
             xc = XUC_INIT;
             for (i = 0; i < 52; i++) {
                 if (carta_existe(e->ult_jogada[j], i)) {
-                    c = mao2carta((MAO) 1 << i);
+                    c = mao2carta(i);
                     printf(
                         "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/>\n",
                         xc, yj, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
@@ -158,7 +226,7 @@ void imprime_carta (const int x, int y, State e, const unsigned int idx)
         e.seleccao = add_carta(&e.seleccao, idx);
     }
 
-    Card c = mao2carta((MAO) 1 << idx);
+    Card c = mao2carta(idx);
     char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
@@ -177,25 +245,37 @@ Esta função imprime a mão do jogador
 */
 void imprime (const State *e)
 {
-    int j;                      /* jogador */
+    int n, v;
+    unsigned int idx;
     int xc = XC_INIT;           /* x inicial */
     int yc = YC_INIT;           /* y inicial */
     int yj = YJ_INIT;           /* tabuleiros dos jogadores */
-    int i;
-    MAO mao = e->mao[0];
 
-    /* -------------- bloco das cartas ------------------ */
+
+    /* ----------- bloco das cartas do jogador ---------- */
     /* -------------------------------------------------- */
     printf( /* opening SVG tag */
         "<SVG WIDTH=440 HEIGHT=120 "
         "STYLE=\"POSITION:ABSOLUTE; TOP:200px; LEFT:100px\">\n"
     );
-    /* imprime a mao do jogador */
-    for (i = 0; mao > 0; mao >>= 1, i++)
-        if (mao & (MAO) 1) {
-            imprime_carta(xc, yc, *e, i);
-            xc += XC_STEP;
-        }
+    if (e->ordena == 0)
+        for (n = 0; n < 4; n++)
+            for (v = 0; v < 13; v++) {
+                idx = INDICE(n, v);
+                if (carta_existe(e->mao[0], idx)) {
+                    imprime_carta(xc, yc, *e, idx);
+                    xc += XC_STEP;
+                }
+            }
+    else
+        for (v = 0; v < 13; v++)
+            for (n = 0; n < 4; n++) {
+                idx = INDICE(n, v);
+                if (carta_existe(e->mao[0], idx)) {
+                    imprime_carta(xc, yc, *e, idx);
+                    xc += XC_STEP;
+                }
+            }
     printf("</SVG>\n");         /* closing SVG tag */
     /* -------------------------------------------------- */
 
@@ -207,14 +287,15 @@ void imprime (const State *e)
         "<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
         "</TR>\n"
     );
-    for (j = 0; j < 4; yj += YJ_STEP, j++)
+    for (n = 0; n < 4; yj += YJ_STEP, n++)
         printf(
             "<TR><TD>%u</TD><TD>%u</TD><TD>%u</TD></TR>\n",
-            j+1, e->ncartas[j], e->pontos[j]
+            n+1, e->ncartas[n], e->pontos[n]
         );
     printf("</TABLE>\n");
     imprime_ult_jogada(e);
     imprime_bjogar(*e);
     imprime_blimpar(*e);
     imprime_bpassar(*e);
+    imprime_bordena(*e);
 }

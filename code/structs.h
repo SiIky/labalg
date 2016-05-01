@@ -3,7 +3,7 @@
  *
  *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]+pontos[n]"
  *
- *      "jogador[0]_jogador[1]_jogador[2]_jogador[3]_(jogador)_(seleccao)_(ult_jogador_valido)"
+ *      "jogador[0]&jogador[1]&jogador[2]&jogador[3]&(jogador)&(seleccao)&(ult_jogador_valido)"
  *
  * =========================================================
  * Última jogada:
@@ -42,14 +42,6 @@
 #define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
-/*
-#define BOT_PROCURA_JOGADA(I)   (I == 1) ? \
-                                    procura1 : \
-                                    (I == 2) ? \
-                                    procura2 : \
-                                    (I == 3) ? \
-                                    procura3 : \
-*/
 
 typedef struct {
     unsigned int naipes[4];
@@ -70,16 +62,19 @@ typedef struct {
     unsigned int jogador;
     unsigned int ult_jogador_valido;
     unsigned int pontos[4];
+    unsigned int ordena;
+    unsigned int decorrer;
 } State;
 
 /*==================================================================*/
 unsigned int    trailingZ       (MAO n);
 unsigned int    bitsUm          (MAO n);
 unsigned int    update_ncartas  (const unsigned int ncartas, const MAO jogada);
+unsigned int    update_decorrer (const State *e);
 MAO             add_carta       (const MAO *e, const unsigned int idx);
 MAO             rem_carta       (const MAO *e, const unsigned int idx);
 int             carta_existe    (MAO e, const unsigned int idx);
-Card            mao2carta       (MAO carta);
+Card            mao2carta       (unsigned int idx);
 void            jogada2cartas   (Card *cartas, unsigned int b, const MAO jogada);
 void            conta_cartas    (CardsCount *contas, const MAO e);
 State           str2estado      (const char *str);
@@ -95,7 +90,9 @@ int             test_4ofakind   (const MAO e);
 int             test_fullhouse  (const MAO e);
 int             test_flush      (const MAO e);
 int             test_straight   (const MAO e);
-void            bot_play1       (State *e);
+int             bot_play1       (State *e);
+int             bot_play23      (State *e, unsigned int N);
+int             escolhe_jogada  (State *e);
 
 /*==================================================================*/
 int test_play1 (const State *e)
@@ -210,16 +207,25 @@ int test_4ofakind (const MAO e)
 }
 
 /*==================================================================*/
-void bot_play1 (State *e)
+int test_play5 (const State *e)
+{
+    return (test_straight(e->seleccao) && test_flush(e->seleccao))      ||
+           (test_4ofakind(e->seleccao))                                 ||
+           (test_fullhouse(e->seleccao))                                ||
+           (test_flush(e->seleccao))                                    ||
+           (test_straight(e->seleccao));
+}
+
+/*==================================================================*/
+int bot_play1 (State *e)
 {
     MAO a_jogar = 0;
     unsigned int idx, i;
+    int r = 0;
 
     if (e->jogador == e->ult_jogador_valido) {
         idx = trailingZ(e->mao[e->jogador]);
-        a_jogar = ((carta_existe(e->mao[e->jogador], idx)) ?
-                  (MAO) 1 << idx :
-                  (MAO) 0);
+        a_jogar = (MAO) 1 << idx;
     } else {
         idx = trailingZ(e->ult_jogada[e->ult_jogador_valido]);
         for (i = idx; i < 52 && !(carta_existe(e->mao[e->jogador], i)); i++);
@@ -228,8 +234,64 @@ void bot_play1 (State *e)
                   (MAO) 0);
     }
 
-    e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], a_jogar);
+    if (a_jogar != (MAO) 0) {
+        e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], a_jogar);
+        r = 1;
+    }
     e->ult_jogada[e->jogador] = a_jogar;
+
+    return r;
+}
+
+/*==================================================================*/
+int escolhe_jogada (State *e)
+{
+    int r = 0;
+    /*if (bot_play5(e) == 1)
+        r = 4;
+    else */if (bot_play23(e, 3) != 0)
+        r = 3;
+    else if (bot_play23(e, 2) != 0)
+        r = 2;
+    else if (bot_play1(e) != 0)
+        r = 1;
+    return r;
+}
+
+/*==================================================================*/
+int bot_play23 (State *e, unsigned int N)
+{
+    unsigned int i, n;
+    unsigned int idx = 0;
+    int r = 0;
+    MAO a_jogar = 0;
+    MAO mao = e->mao[e->jogador];
+    CardsCount c;
+
+    if (e->jogador != e->ult_jogador_valido)
+        idx = trailingZ(e->ult_jogada[e->ult_jogador_valido]);
+
+    for (i = 0; i < idx; i++)
+        mao = rem_carta(&mao, i);
+
+    conta_cartas(&c, mao);
+    for (i = 0; i < 13 && c.valores[i] < N; i++);
+    if (c.valores[i] >= N)
+        for (n = 0; n < 4 && (N > 0); n++) {
+            idx = INDICE(n, i);
+            if (carta_existe(mao, idx)) {
+                a_jogar = add_carta(&mao, idx);
+                N--;
+            }
+        }
+
+    if (a_jogar != (MAO) 0) {
+        e->mao[e->jogador] = REM_SELECCAO(e->mao[e->jogador], a_jogar);
+        r = 1;
+    }
+    e->ult_jogada[e->jogador] = a_jogar;
+
+    return r;
 }
 
 /*==================================================================*/
@@ -297,13 +359,17 @@ unsigned int update_ncartas (const unsigned int ncartas, const MAO jogada)
 }
 
 /*==================================================================*/
-Card mao2carta (MAO carta)
+Card mao2carta (unsigned int idx)
 {
     Card c;
+    /*
     for (c.valor = 0; carta > TERNOS; c.valor++)
         carta >>= 4;
     for (c.naipe = 0; !(carta_existe(carta, 0)); c.naipe++)
         carta >>= 1;
+    */
+    c.valor = (int) idx / 4;
+    c.naipe = idx % 4;
     return c;
 }
 
@@ -318,7 +384,7 @@ void jogada2cartas (Card *cartas, unsigned int b, const MAO jogada)
     unsigned int i, w;
     for (i = w = 0; i < 52 && w < b; i++)
         if (carta_existe(jogada, i))
-            cartas[w++] = mao2carta((MAO) 1 << i);
+            cartas[w++] = mao2carta(i);
 }
 
 /*==================================================================*/
@@ -328,10 +394,18 @@ void conta_cartas (CardsCount *contas, const MAO e)
     unsigned int i;
     for (i = 0; i < 52; i++)
         if (carta_existe(e, i)) {
-            c = mao2carta((MAO) 1 << i);
+            c = mao2carta(i);
             contas->valores[c.valor]++;
             contas->naipes[c.naipe]++;
         }
+}
+
+/*==================================================================*/
+unsigned int update_decorrer (const State *e)
+{
+    int j;
+    for (j = 0; j < 4 && e->ncartas[j] > 0; j++);
+    return (e->ncartas[j] > 0) ? 1 : 0;
 }
 
 /*==================================================================*/
@@ -339,16 +413,18 @@ State str2estado (const char *str)
 {
     State e;
     sscanf(str, "q="
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%u_%llu_%u",
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%u&%llu&%u"
+        "&%u&%u",
         &e.mao[0], &e.ult_jogada[0], &e.ncartas[0], &e.pontos[0],
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1], &e.pontos[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2], &e.pontos[2],
         &e.mao[3], &e.ult_jogada[3], &e.ncartas[3], &e.pontos[3],
-        &e.jogador, &e.seleccao, &e.ult_jogador_valido
+        &e.jogador, &e.seleccao, &e.ult_jogador_valido,
+        &e.ordena, &e.decorrer
     );
     return e;
 }
@@ -358,16 +434,18 @@ char* estado2str (const State *e)
 {
     static char str[MAXLEN];
     sprintf(str,
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%llu+%llu+%u+%u_"
-        "%u_%llu_%u",
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%llu+%llu+%u+%u&"
+        "%u&%llu&%u"
+        "&%u&%u",
         e->mao[0], e->ult_jogada[0], e->ncartas[0], e->pontos[0],
         e->mao[1], e->ult_jogada[1], e->ncartas[1], e->pontos[1],
         e->mao[2], e->ult_jogada[2], e->ncartas[2], e->pontos[2],
         e->mao[3], e->ult_jogada[3], e->ncartas[3], e->pontos[3],
-        e->jogador, e->seleccao, e->ult_jogador_valido
+        e->jogador, e->seleccao, e->ult_jogador_valido,
+        e->ordena, e->decorrer
     );
     return str;
 }
@@ -394,13 +472,18 @@ void baralhar (State *e)
 void initEstado (State *e)
 {
     int i;
+
     e->seleccao = (MAO) 0;
+    e->ordena = 1;
+    e->decorrer = 1;
+
     for (i = 0; i < 4; i++) {
         e->mao[i] = (MAO) 0;
         e->ult_jogada[i] = (MAO) 0;
         e->ncartas[i] = 0;
         e->pontos[i] = 0;
     }
+
     baralhar(e);
     for (i = 0; i < 4 && (e->mao[i] % 2 == 0); i++);
     e->ult_jogador_valido = e->jogador = i;

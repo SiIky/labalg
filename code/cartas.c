@@ -30,27 +30,25 @@ int jogada_valida (const State *e)
         switch (nb) {
             case PLAY_SINGLE:
                 return test_play1(e);
-                break;
             case PLAY_PAIR:
                 return test_play2(e);
-                break;
             case PLAY_TRIPLE:
                 return test_play3(e);
-                break;
             case PLAY_FIVE:
                 /* return test_play5(e); */
                 /*
-                   int sel_combo = tipoecombo(&(e->seleccao));
-                   if (sel_combo > 0)
+                   int combo_sel = tipodecombo(&(e->seleccao));
+                   int combo_ult = tipodecombo(&(e->ult_jogada[e->ult_jogador_valido]));
+                   if (combo_sel > combo_ult)
+                        return 1;
+                   else if (combo_sel == combo_ult)
                        compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
                    else
                        return 0;
                  */
                 return 1;
-                break;
             default:
                 return 0;
-                break;
         }
     else
         return 0;
@@ -59,15 +57,31 @@ int jogada_valida (const State *e)
 /*==================================================================*/
 void bot_joga (State *e)
 {
-    /*
-     for (i = 5; a_jogar == 0 && i > 0; i--) {
-        a_jogar = BOT_PROCURA_JOGADA(i);
-     */
-    bot_play1(e);
+    unsigned int nb;
+    int r = 0;
+    if (e->ult_jogador_valido == e->jogador) { /* pode jogar qq coisa */
+        r = escolhe_jogada(e);
+    } else {
+        nb = bitsUm(e->ult_jogada[e->ult_jogador_valido]);
+        switch (nb) {
+            case PLAY_FIVE:
+                printf("<P>fuck you creator, you havent taught me how to play that!</P>\n");
+                break;
+            case PLAY_TRIPLE:
+            case PLAY_PAIR:
+                r = bot_play23(e, nb);
+                break;
+            case PLAY_SINGLE:
+                r = bot_play1(e);
+                break;
+        }
+    }
 
-    if (e->ult_jogada[e->jogador] != 0) {
+    if (r != 0) { /* jogou */
         e->ult_jogador_valido = e->jogador;
         e->ncartas[e->jogador] = update_ncartas(e->ncartas[e->jogador], e->ult_jogada[e->jogador]);
+    } else { /* passou */
+        e->ult_jogada[e->jogador] = (MAO) 0;
     }
     e->jogador = PROX_JOG(e->jogador);
 }
@@ -84,15 +98,24 @@ Caso não seja passado nada à cgi-bin, ela assume que o jogo esta ainda para co
 void parse (char *query)
 {
     State e;
+
     if (query != NULL && strlen(query) > 0)
         e = str2estado(query);
     else
         initEstado(&e);
 
-    for (; e.jogador != 0;)
-        bot_joga(&e);
+    e.decorrer = update_decorrer(&e);
 
-    imprime(&e);
+    for (; e.jogador != 0 && e.decorrer == 1;) {
+        bot_joga(&e);
+        e.decorrer = update_decorrer(&e);
+    }
+
+    /*if (e.decorrer == 0) {
+        game_over();
+    } else {*/
+        imprime(&e);
+    /*}*/
 }
 
 /*==================================================================*/
