@@ -5,9 +5,8 @@
 #define PLAY_FIVE       5
 
 /*==================================================================*/
-void    bot_joga                (State *e);
 void    parse                   (char *query);
-int     valores_iguais          (Card *cartas);
+int     valores_iguais          (Card *c, int N);
 int     jogada_valida           (const State *e);
 void    imprime_bjogar          (State e);
 void    imprime_blimpar         (State e);

@@ -4,15 +4,17 @@
 #include <time.h>
 
 #include "structs.h"
-#include "cartas.h"
+#include "bigtwo.h"
+#include "bot.h"
 #include "ui.h"
 
 /*==================================================================*/
-int valores_iguais (Card *cartas)
+int valores_iguais (Card *c, int N)
 {
-    int i, res;
-    for (i = 1, res = 0; (cartas[i].valor < 13 && cartas[i].naipe < 4 && (res = (cartas[i].valor == cartas[i-1].valor))); i++);
-    return (i == 1) ? 1 : res;
+    int r;
+    for (r = 1; N > 0 && r != 0; N--)
+        r = c[N].valor == c[N-1].valor;
+    return r;
 }
 
 /*==================================================================*/
@@ -25,8 +27,9 @@ int valores_iguais (Card *cartas)
 int jogada_valida (const State *e)
 {
     unsigned int nb = bitsUm(e->seleccao);
+    unsigned int ub = bitsUm(e->seleccao);
 
-    if (!(carta_existe(e->mao[0], (MAO) 0)) || carta_existe(e->seleccao, (MAO) 0))
+    if (nb == ub && (!(carta_existe(e->mao[0], (MAO) 0)) || carta_existe(e->seleccao, (MAO) 0)))
         switch (nb) {
             case PLAY_SINGLE:
                 return test_play1(e);
@@ -35,55 +38,19 @@ int jogada_valida (const State *e)
             case PLAY_TRIPLE:
                 return test_play3(e);
             case PLAY_FIVE:
-                /* return test_play5(e); */
+                return test_play5(e);
                 /*
-                   int combo_sel = tipodecombo(&(e->seleccao));
-                   int combo_ult = tipodecombo(&(e->ult_jogada[e->ult_jogador_valido]));
-                   if (combo_sel > combo_ult)
-                        return 1;
-                   else if (combo_sel == combo_ult)
-                       compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
-                   else
-                       return 0;
-                 */
-                return 1;
-            default:
-                return 0;
+                int combo_sel = tipodecombo(&(e->seleccao));
+                int combo_ult = tipodecombo(&(e->ult_jogada[e->ult_jogador_valido]));
+                if (combo_sel > combo_ult)
+                     return 1;
+                else if (combo_sel == combo_ult)
+                    compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
+                else
+                    return 0;
+                */
         }
-    else
-        return 0;
-}
-
-/*==================================================================*/
-void bot_joga (State *e)
-{
-    unsigned int nb;
-    int r = 0;
-    if (e->ult_jogador_valido == e->jogador) { /* pode jogar qq coisa */
-        r = escolhe_jogada(e);
-    } else {
-        nb = bitsUm(e->ult_jogada[e->ult_jogador_valido]);
-        switch (nb) {
-            case PLAY_FIVE:
-                printf("<P>fuck you creator, you havent taught me how to play that!</P>\n");
-                break;
-            case PLAY_TRIPLE:
-            case PLAY_PAIR:
-                r = bot_play23(e, nb);
-                break;
-            case PLAY_SINGLE:
-                r = bot_play1(e);
-                break;
-        }
-    }
-
-    if (r != 0) { /* jogou */
-        e->ult_jogador_valido = e->jogador;
-        e->ncartas[e->jogador] = update_ncartas(e->ncartas[e->jogador], e->ult_jogada[e->jogador]);
-    } else { /* passou */
-        e->ult_jogada[e->jogador] = (MAO) 0;
-    }
-    e->jogador = PROX_JOG(e->jogador);
+    return 0;
 }
 
 /*==================================================================*/
@@ -114,7 +81,7 @@ void parse (char *query)
     /*if (e.decorrer == 0) {
         game_over();
     } else {*/
-        imprime(&e);
+    imprime(&e);
     /*}*/
 }
 
