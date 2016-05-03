@@ -160,12 +160,10 @@ int test_flush (const MAO e)
 {
     Card cartas[5];
     jogada2cartas(cartas, 5, e);
-    int res = cartas[0].naipe == cartas[1].naipe &&
-            cartas[0].naipe == cartas[2].naipe &&
-            cartas[0].naipe == cartas[3].naipe &&
-            cartas[0].naipe == cartas[4].naipe;
-    printf("test_flush: %d\n", res);
-    return res; /* tem de devolver o naipe da carta mais alta (cartas[4].valor) */
+    return cartas[0].naipe == cartas[1].naipe &&
+           cartas[0].naipe == cartas[2].naipe &&
+           cartas[0].naipe == cartas[3].naipe &&
+           cartas[0].naipe == cartas[4].naipe;
 }
 
 /*==================================================================*/
@@ -205,11 +203,11 @@ int test_4ofakind (const MAO e)
 /*==================================================================*/
 int test_play5 (const State *e)
 {
-    return (test_straight(e->seleccao) && test_flush(e->seleccao))      ||
-           (test_4ofakind(e->seleccao))                                 ||
-           (test_fullhouse(e->seleccao))                                ||
-           (test_flush(e->seleccao))                                    ||
-           (test_straight(e->seleccao));
+    return (test_straight(e->seleccao) < 13 && test_flush(e->seleccao))      ||
+           (test_4ofakind(e->seleccao) < 13)                                 ||
+           (test_fullhouse(e->seleccao) < 13)                                ||
+           (test_flush(e->seleccao))                                         ||
+           (test_straight(e->seleccao) < 13);
 }
 
 /*==================================================================*/
