@@ -40,6 +40,7 @@
 #define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
 #define REM_SELECCAO(E, S)      (E & ~S)            /* remove a seleccao de cartas de um dado estado */
+#define UPDATE_DECORRER         (e.decorrer = update_decorrer(&e))
 
 typedef struct {
     unsigned int naipes[4];

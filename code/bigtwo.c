@@ -71,18 +71,13 @@ void parse (char *query)
     else
         initEstado(&e);
 
-    e.decorrer = update_decorrer(&e);
-
-    for (; e.jogador != 0 && e.decorrer == 1;) {
+    for (UPDATE_DECORRER; (e.jogador != 0 && e.decorrer == 1); UPDATE_DECORRER)
         bot_joga(&e);
-        e.decorrer = update_decorrer(&e);
-    }
 
-    /*if (e.decorrer == 0) {
+    if (e.decorrer == 0)
         game_over();
-    } else {*/
-    imprime(&e);
-    /*}*/
+    else
+        imprime(&e);
 }
 
 /*==================================================================*/

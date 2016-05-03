@@ -41,7 +41,7 @@ void    game_over               (void);
 /*==================================================================*/
 void game_over (void)
 {
-    printf("acabou a brincadeira\n");
+    printf("acabou o jogo\n");
 }
 
 /*==================================================================*/
@@ -85,7 +85,7 @@ void imprime_bjogar (State e)
         e.ult_jogada[0] = e.seleccao;
         e.ncartas[0] -= bitsUm(e.seleccao);
         e.seleccao = (MAO) 0;
-        e.decorrer = update_decorrer(&e);
+        UPDATE_DECORRER;
 
         sprintf(link, "%s?q=%s", SCRIPT, estado2str(&e));
         printf(
