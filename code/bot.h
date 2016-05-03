@@ -78,15 +78,15 @@ int bot_play23 (State *e, unsigned int N)
     MAO ult_jogada = e->ult_jogada[e->ult_jogador_valido];
     CardsCount c;
 
-    if (e->jogador != e->ult_jogador_valido)
+    if (e->jogador != e->ult_jogador_valido) {
         for (i = 1; i < N; i++) {
             idx = trailingZ(ult_jogada);
             ult_jogada = rem_carta(&ult_jogada, idx);
         }
-
-    idx = trailingZ(ult_jogada);
-    for (i = 0; i < idx; i++)
-        mao = rem_carta(&mao, i);
+        idx = trailingZ(ult_jogada);
+        for (i = 0; i < idx; i++)
+            mao = rem_carta(&mao, i);
+    }
 
     conta_cartas(&c, mao);
     for (i = 0; i < 13 && c.valores[i] < N; i++);
