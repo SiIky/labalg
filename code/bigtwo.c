@@ -9,15 +9,6 @@
 #include "ui.h"
 
 /*==================================================================*/
-int valores_iguais (Card *c, int N)
-{
-    int r;
-    for (r = 1; N > 0 && r != 0; N--)
-        r = c[N].valor == c[N-1].valor;
-    return r;
-}
-
-/*==================================================================*/
 /** \brief Verifica se uma jogada é válida
 
 @param jogada           As cartas selecionadas
@@ -39,16 +30,6 @@ int jogada_valida (const State *e)
                 return test_play3(e);
             case PLAY_FIVE:
                 return test_play5(e);
-                /*
-                int combo_sel = tipodecombo(&(e->seleccao));
-                int combo_ult = tipodecombo(&(e->ult_jogada[e->ult_jogador_valido]));
-                if (combo_sel > combo_ult)
-                     return 1;
-                else if (combo_sel == combo_ult)
-                    compara(seleccao, sel_combo, ult_jogada); // compara com a ult_jogada
-                else
-                    return 0;
-                */
         }
     return 0;
 }
@@ -74,9 +55,6 @@ void parse (char *query)
     for (UPDATE_DECORRER; (e.jogador != 0 && e.decorrer == 1); UPDATE_DECORRER)
         bot_joga(&e);
 
-    if (e.decorrer == 0)
-        game_over();
-    else
         imprime(&e);
 }
 
@@ -94,8 +72,8 @@ int main (void)
         "<!DOCTYPE HTML>\n"
         "<HTML>\n"
         "<HEAD>\n"
-        "\t<TITLE>Big Two</TITLE>\n"
-        "\t<META CHARSET=\"utf-8\"/>\n"
+        "<TITLE>Big Two</TITLE>\n"
+        "<META CHARSET=\"utf-8\"/>\n"
         "</HEAD>\n"
         "<BODY BGCOLOR=\"%s\">\n",
         COR_TABULEIRO

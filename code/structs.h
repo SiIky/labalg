@@ -3,7 +3,7 @@
  *
  *      jogador[n] := "mao[n]+(ult_jogada[n])+ncartas[n]+pontos[n]"
  *
- *      "jogador[0]&jogador[1]&jogador[2]&jogador[3]&(jogador)&(seleccao)&(ult_jogador_valido)"
+ *      "jogador[0]&jogador[1]&jogador[2]&jogador[3]&(jogador)&(seleccao)&(ult_jogador_valido)&(ordena)&(decorrer)"
  *
  * =========================================================
  * Última jogada:
@@ -23,19 +23,18 @@
  *      e[n][v] = 1     =>      (e |  ((MAO) 1 << INDICE(N, V)))
  * =========================================================
  *          | 0123456789ABC | DEF
- *       ---|---------------|-----|----------
- *        0 | ............. | ... | Diamonds
- *        1 | ............. | ... | Clubs
- *        2 | ............. | ... | Heart
- *        3 | ............. | ... | Spades
- *       ---|---------------|-----|----------
+ *       ---|---------------|-----|---
+ *        0 | ............. | ... | D
+ *        1 | ............. | ... | C
+ *        2 | ............. | ... | H
+ *        3 | ............. | ... | S
+ *       ---|---------------|-----|---
  *          | 34567891JQKA2 |
  *                   0
  */
 
 /* comprimento máximo das strings */
-#define MAXLEN          10240
-#define TERNOS          ((MAO) 1 << 3)
+#define MAXLEN          100240
 
 #define INDICE_NAIPE(N, V)      (V + (N * 13))      /* ordenado por naipe (do stor) */
 #define INDICE(N, V)            (N + (V * 4))       /* ordenado por figuras (nossa) */
@@ -91,6 +90,11 @@ int             test_flush      (const MAO e);
 int             test_straight   (const MAO e);
 
 /*==================================================================*/
+/** \brief Determina se uma jogada de 1 carta é válida ou não de acordo com a última jogada
+
+@param e        O estado do jogo
+@return         Verdadeiro ou falso
+*/
 int test_play1 (const State *e)
 {
     return (e->jogador == e->ult_jogador_valido ||
@@ -98,6 +102,11 @@ int test_play1 (const State *e)
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada de 2 cartas é válida ou não de acordo com a última jogada
+
+@param e        O estado do jogo
+@return         Verdadeiro ou falso
+*/
 int test_play2 (const State *e)
 {
     Card jogada[2];
@@ -113,6 +122,11 @@ int test_play2 (const State *e)
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada de 3 cartas é válida ou não de acordo com a última jogada
+
+@param e        O estado do jogo
+@return         Verdadeiro ou falso
+*/
 int test_play3 (const State *e)
 {
     Card jogada[3];
@@ -120,42 +134,58 @@ int test_play3 (const State *e)
     Card ult_jogada[3];
     jogada2cartas(ult_jogada, 3, e->ult_jogada[e->ult_jogador_valido]);
 
-    return (jogada[0].valor == jogada[1].valor &&
-           jogada[0].valor == jogada[2].valor &&
-           jogada[0].valor > ult_jogada[0].valor);
+    return (jogada[0].valor == jogada[1].valor  &&
+            jogada[0].valor == jogada[2].valor  &&
+           (e->jogador == e->ult_jogador_valido ||
+           jogada[0].valor > ult_jogada[0].valor));
 }
 
 /*==================================================================*/
+/** \brief Determina o tipo de combinação de 5 cartas de uma jogada
+
+@param e        Jogada a testar
+@return         O tipo de combinação ou 0 caso não seja uma combinação válida
+*/
 int tipodecombo (const MAO *e)
 {
-    if (test_straight(*e) && test_flush(*e))
-        return 5;
-    else if (test_4ofakind(*e) < 13)
-        return 4;
-    else if (test_fullhouse(*e) < 13)
-        return 3;
-    else if (test_flush(*e) < 4)
-        return 2;
-    else if (test_straight(*e) < 13)
-        return 1;
+    int r = 0;
 
-    return 0;
+    if (test_straight(*e) && test_flush(*e))
+        r = 5;
+    else if (test_4ofakind(*e) < 13)
+        r = 4;
+    else if (test_fullhouse(*e) < 13)
+        r = 3;
+    else if (test_flush(*e) < 4)
+        r = 2;
+    else if (test_straight(*e) < 13)
+        r = 1;
+
+    return r;
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada (seleccao) de 5 cartas é um Straight
+
+@param e        Jogada a testar
+@return         Verdadeiro ou falso
+*/
 int test_straight (const MAO e)
 {
     Card cartas[5];
     jogada2cartas(cartas, 5, e);
-    int res = cartas[0].valor == (cartas[1].valor - 1) &&
+    return cartas[0].valor == (cartas[1].valor - 1) &&
            cartas[1].valor == (cartas[2].valor - 1) &&
            cartas[2].valor == (cartas[3].valor - 1) &&
            cartas[3].valor == (cartas[4].valor - 1);
-    printf("test_straight: %d\n", res);
-    return res;
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada (seleccao) de 5 cartas é um Flush
+
+@param e        Jogada a testar
+@return         Verdadeiro ou falso
+*/
 int test_flush (const MAO e)
 {
     Card cartas[5];
@@ -167,6 +197,11 @@ int test_flush (const MAO e)
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada (seleccao) de 5 cartas é um Full House e devolve o valor do triplo caso seja
+
+@param e        Jogada a testar
+@return         O valor do triplo, caso seja um Full House, 13 caso contrário
+*/
 int test_fullhouse (const MAO e)
 {
     CardsCount cartas;
@@ -181,12 +216,17 @@ int test_fullhouse (const MAO e)
     /* procura por um par */
     for (v = 0; v < 13 && cartas.valores[v] != 2; v++);
     if (cartas.valores[v] != 2)
-        return 13;
+        j = 13;
 
     return j; /* o valor da carta mais alta, pra comparacoes */
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada (seleccao) de 5 cartas é um 4 of a kind e devolve a figura das 4 cartas caso seja 
+
+@param e        Jogada a testar
+@return         O valor das 4 cartas, caso seja um 4 of a kind, 13 caso contrário
+*/
 int test_4ofakind (const MAO e)
 {
     CardsCount cartas;
@@ -195,12 +235,17 @@ int test_4ofakind (const MAO e)
 
     for (v = 0; v < 13 && cartas.valores[v] != 4; v++);
     if (cartas.valores[v] != 4)
-        return 13;
+        v = 13;
 
     return v; /* o valor da carta mais alta, pra comparacoes */
 }
 
 /*==================================================================*/
+/** \brief Determina se uma jogada (seleccao) de 5 cartas é válida ou não
+
+@param e        O estado do jogo
+@return         Se a seleccao é válida ou não
+*/
 int test_play5 (const State *e)
 {
     return (test_straight(e->seleccao) < 13 && test_flush(e->seleccao))      ||
@@ -211,6 +256,11 @@ int test_play5 (const State *e)
 }
 
 /*==================================================================*/
+/** \brief Calcula o índice da carta mais baixa de uma mão
+
+@param n        A mão a calcular
+@return         O índice da carta mais baixa
+*/
 unsigned int trailingZ (MAO n)
 {
     unsigned int count;
@@ -268,6 +318,12 @@ int carta_existe (MAO e, const unsigned int idx)
 }
 
 /*==================================================================*/
+/** \brief Actualiza o número de cartas de um jogador
+
+@param ncartas  O número de cartas de um jogador
+@param jogada   A última jogada de um jogador
+@return         O número de cartas actualizado
+*/
 unsigned int update_ncartas (const unsigned int ncartas, const MAO jogada)
 {
     unsigned int i = bitsUm(jogada);
@@ -275,6 +331,11 @@ unsigned int update_ncartas (const unsigned int ncartas, const MAO jogada)
 }
 
 /*==================================================================*/
+/** \brief Calcula o naipe e valor de uma carta
+
+@param idx      O índice da carta
+@return         O par naipe/figura
+*/
 Card mao2carta (unsigned int idx)
 {
     Card c;
@@ -286,6 +347,8 @@ Card mao2carta (unsigned int idx)
 /*==================================================================*/
 /** \brief Devolve uma lista de cartas (pares naipes/figuras)
 
+@param cartas   Array onde vão ser guardadas as cartas
+@param b        Número de cartas que jogada tem
 @param jogada   A jogada a converter
 @return         Os pares naipe/figura ordenados por figuras
 */
@@ -298,6 +361,12 @@ void jogada2cartas (Card *cartas, unsigned int b, const MAO jogada)
 }
 
 /*==================================================================*/
+/** \brief Devolve uma lista de cartas (pares naipes/figuras)
+
+@param contas   Apontador para a estrutura onde vai ser guardado o resultado
+@param e        A mão a converter
+@return         O número de cartas de cada naipe e cada valor
+*/
 void conta_cartas (CardsCount *contas, const MAO e)
 {
     Card c;
@@ -316,6 +385,11 @@ void conta_cartas (CardsCount *contas, const MAO e)
 }
 
 /*==================================================================*/
+/** \brief Actualiza o campo decorrer do estado do jogo
+
+@param e        O estado do jogo
+@return         O campo decorrer actualizado
+*/
 unsigned int update_decorrer (const State *e)
 {
     int j;
@@ -324,6 +398,11 @@ unsigned int update_decorrer (const State *e)
 }
 
 /*==================================================================*/
+/** \brief Transforma uma string e devolve o estado d jogo
+
+@param str      A string a converter para estado
+@return         O estado de jogo de acordo com a string
+*/
 State str2estado (const char *str)
 {
     State e;
@@ -332,8 +411,8 @@ State str2estado (const char *str)
         "%llu+%llu+%u+%u&"
         "%llu+%llu+%u+%u&"
         "%llu+%llu+%u+%u&"
-        "%u&%llu&%u"
-        "&%u&%u",
+        "%u&%llu&%u&"
+        "%u&%u",
         &e.mao[0], &e.ult_jogada[0], &e.ncartas[0], &e.pontos[0],
         &e.mao[1], &e.ult_jogada[1], &e.ncartas[1], &e.pontos[1],
         &e.mao[2], &e.ult_jogada[2], &e.ncartas[2], &e.pontos[2],
@@ -345,6 +424,11 @@ State str2estado (const char *str)
 }
 
 /*==================================================================*/
+/** \brief Transforma uma string e devolve o estado do jogo
+
+@param str      A string a converter para estado
+@return         O estado de jogo de acordo com a string
+*/
 char* estado2str (const State *e)
 {
     static char str[MAXLEN];
@@ -353,8 +437,8 @@ char* estado2str (const State *e)
         "%llu+%llu+%u+%u&"
         "%llu+%llu+%u+%u&"
         "%llu+%llu+%u+%u&"
-        "%u&%llu&%u"
-        "&%u&%u",
+        "%u&%llu&%u&"
+        "%u&%u",
         e->mao[0], e->ult_jogada[0], e->ncartas[0], e->pontos[0],
         e->mao[1], e->ult_jogada[1], e->ncartas[1], e->pontos[1],
         e->mao[2], e->ult_jogada[2], e->ncartas[2], e->pontos[2],
@@ -369,7 +453,7 @@ char* estado2str (const State *e)
 /** \brief Dá as cartas a cada jogador no início do jogo
 
 @param e        O estado actual do jogo
-@return e       O novo estado do jogo
+@return         O novo estado do jogo
 */
 void baralhar (State *e)
 {
@@ -384,6 +468,11 @@ void baralhar (State *e)
 }
 
 /*==================================================================*/
+/** \brief Inicializa o jogo
+
+@param e        O estado do jogo vazio
+@return         O novo estado do jogo
+*/
 void initEstado (State *e)
 {
     int i;

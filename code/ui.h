@@ -39,12 +39,19 @@ void    imprime                 (const State *e);
 void    game_over               (void);
 
 /*==================================================================*/
+/** \brief Imprime o ecrã de fim de jogo
+
+*/
 void game_over (void)
 {
     printf("acabou o jogo\n");
 }
 
 /*==================================================================*/
+/** \brief Imprime o botão Ordena
+
+@param e        O estado actual do jogo
+*/
 void imprime_bordena (State e)
 {
     char link[MAXLEN];
@@ -230,30 +237,42 @@ void imprime_carta (const int x, int y, State e, const unsigned int idx)
     char script[MAXLEN];
     sprintf(script, "%s?q=%s", SCRIPT, estado2str(&e));
     printf(
-        "\t<A XLINK:HREF=\"%s\">"
+        "<A XLINK:HREF=\"%s\">"
         "<IMAGE X=%d Y=%d WIDTH=80 HEIGHT=110 XLINK:HREF=\"%s/%c%c.svg\"/></A>\n",
         script,
         x, y, BARALHO, VALORES[c.valor], NAIPES[c.naipe]
     );
 }
 
-/*==================================================================*/
-/** \brief Imprime o estado do jogo
 
-Esta função imprime a mão do jogador
-@param e        O estado atual do jogo
-*/
-void imprime (const State *e)
+void imprime_tabela (const State *e)
+{
+    int n;
+
+    printf(
+        "<TABLE BORDER=\"4px\" BORDERCOLOR=\"BLACK\" "
+        "STYLE=\"BACKGROUND-COLOR: YELLOW\">\n"
+        "<TR>"
+        "<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
+        "</TR>\n"
+    );
+
+    for (n = 0; n < 4; n++)
+        printf(
+            "<TR><TD>%u</TD><TD>%u</TD><TD>%u</TD></TR>\n",
+            n+1, e->ncartas[n], e->pontos[n]
+        );
+
+    printf("</TABLE>\n");
+}
+
+void imprime_maos (const State *e)
 {
     int n, v;
     unsigned int idx;
     int xc = XC_INIT;           /* x inicial */
     int yc = YC_INIT;           /* y inicial */
-    int yj = YJ_INIT;           /* tabuleiros dos jogadores */
 
-
-    /* ----------- bloco das cartas do jogador ---------- */
-    /* -------------------------------------------------- */
     printf( /* opening SVG tag */
         "<SVG WIDTH=440 HEIGHT=120 "
         "STYLE=\"POSITION:ABSOLUTE; TOP:200px; LEFT:100px\">\n"
@@ -276,23 +295,20 @@ void imprime (const State *e)
                     xc += XC_STEP;
                 }
             }
-    printf("</SVG>\n");         /* closing SVG tag */
-    /* -------------------------------------------------- */
 
-    /* imprime a tabela de info sobre o jogo */
-    printf(
-        "<TABLE BORDER=\"4px\" BORDERCOLOR=\"BLACK\" "
-        "STYLE=\"BACKGROUND-COLOR: YELLOW\">\n"
-        "<TR>"
-        "<TH>Jogador</TH><TH># de cartas</TH><TH>Pontos</TH>"
-        "</TR>\n"
-    );
-    for (n = 0; n < 4; yj += YJ_STEP, n++)
-        printf(
-            "<TR><TD>%u</TD><TD>%u</TD><TD>%u</TD></TR>\n",
-            n+1, e->ncartas[n], e->pontos[n]
-        );
-    printf("</TABLE>\n");
+    printf("</SVG>\n");         /* closing SVG tag */
+}
+
+/*==================================================================*/
+/** \brief Imprime o estado do jogo
+
+Esta função imprime a mão do jogador
+@param e        O estado atual do jogo
+*/
+void imprime (const State *e)
+{
+    imprime_tabela(e);
+    imprime_maos(e);
     imprime_ult_jogada(e);
     imprime_bjogar(*e);
     imprime_blimpar(*e);

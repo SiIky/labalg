@@ -7,6 +7,10 @@ int     bot_play23      (State *e, unsigned int N);
 int     escolhe_jogada  (State *e);
 
 /*==================================================================*/
+/** \brief Função que é chamada quando é a vez do bot jogar
+
+@param e        O estado do jogo
+*/
 void bot_joga (State *e)
 {
     unsigned int nb;
@@ -18,7 +22,6 @@ void bot_joga (State *e)
         nb = bitsUm(e->ult_jogada[e->ult_jogador_valido]);
         switch (nb) {
             case PLAY_FIVE:
-                printf("<P>fuck you creator, you havent taught me how to play that!</P>\n");
                 /* r = bot_play5(e); */
                 break;
             case PLAY_TRIPLE:
@@ -41,6 +44,10 @@ void bot_joga (State *e)
 }
 
 /*==================================================================*/
+/** \brief Função do bot para jogar 1 carta
+
+@param e        O estado do jogo
+*/
 int bot_play1 (State *e)
 {
     MAO a_jogar = 0;
@@ -68,6 +75,10 @@ int bot_play1 (State *e)
 }
 
 /*==================================================================*/
+/** \brief Função do bot para jogar pares e trios
+
+@param e        O estado do jogo
+*/
 int bot_play23 (State *e, unsigned int N)
 {
     unsigned int i, n;
@@ -108,6 +119,10 @@ int bot_play23 (State *e, unsigned int N)
 }
 
 /*==================================================================*/
+/** \brief Função do bot para escolher o tipo de jogada mais alta, quando pode jogar à escolha
+
+@param e        O estado do jogo
+*/
 int escolhe_jogada (State *e)
 {
     int r, i;
